@@ -110,6 +110,8 @@ dependencies:
     - future==0.18.2
     - grpcio==1.31.0
     - gym==0.17.2
+    - gym_unity
+    - mlagents_envs==0.26.0
     - markdown==3.2.2
     - protobuf==3.12.4
     - psutil==5.7.2

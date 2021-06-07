@@ -1,5 +1,5 @@
 """
-An example that shows how to use SampleFactory with a rocket_league_ env.
+An example that shows how to use SampleFactory with a rocket_league_ env. To use this script, ypu need to add the rocket_league_saving_training_single executable in the root directory of this repo.
 
 Example command line for saving_training_single:
 python -m multi_sample_factory_examples.train_rocket_league_env --algo=APPO --use_rnn=False --num_envs_per_worker=20 --policy_workers_per_policy=2 --recurrence=1 --with_vtrace=False --batch_size=512 --hidden_size=256 --encoder_type=mlp --encoder_subtype=mlp_mujoco --reward_scale=0.1 --save_every_sec=10 --experiment_summaries_interval=10 --experiment=example_rocket_league_saving_training_single --env=rocket_league_saving_training_single
