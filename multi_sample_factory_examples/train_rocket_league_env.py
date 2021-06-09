@@ -8,6 +8,9 @@ python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --ex
 """
 
 import sys
+import fcntl
+import os
+
 
 import gym
 
