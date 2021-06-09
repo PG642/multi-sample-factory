@@ -35,7 +35,16 @@ def custom_parse_args(argv=None, evaluation=False):
 def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
     assert full_env_name.startswith('rocket_league_')
     rocket_league_env_name = full_env_name.split('rocket_league_')[1]
-    unity_env = UnityEnvironment(file_name=full_env_name, seed=1, side_channels=[])
+    f = open("/work/user/worker_id", "r+")
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    f.seek(0)
+    worker_id = int(f.readline())
+    unity_env = UnityEnvironment(file_name=full_env_name, seed=1, side_channels=[], worker_id=worker_id)
+    f.seek(0)
+    f.write(str(worker_id+1) + "\n")
+    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    f.close()
+
     env = UnityToGymWrapper(unity_env)
     return env
 
