@@ -6,7 +6,7 @@ import shutil
 from os.path import join
 from pathlib import Path
 
-from multi_sample_factory.utils.utils import ensure_dir_exists, log, safe_ensure_dir_exists
+from sample_factory.utils.utils import ensure_dir_exists, log, safe_ensure_dir_exists
 
 
 LEVEL_SEEDS_FILE_EXT = 'dm_lvl_seeds'
@@ -94,7 +94,7 @@ class DmlabLevelCacheGlobal:
         log.debug('Reading the DMLab level cache...')
         cache_dir = ensure_dir_exists(cache_dir)
 
-        lvl_seed_files = Path(cache_dir).rglob(f'*.{LEVEL_SEEDS_FILE_EXT}')
+        lvl_seed_files = Path(os.path.join(cache_dir, '_contributed')).rglob(f'*.{LEVEL_SEEDS_FILE_EXT}')
         for lvl_seed_file in lvl_seed_files:
             lvl_seed_file = str(lvl_seed_file)
             level = filename_to_level(os.path.relpath(lvl_seed_file, cache_dir))

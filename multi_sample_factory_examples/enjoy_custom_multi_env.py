@@ -1,13 +1,14 @@
 import sys
 
 from sample_factory.algorithms.appo.enjoy_appo import enjoy
-from multi_sample_factory_examples.train_custom_env_custom_model import register_custom_components, custom_parse_args
+from sample_factory.algorithms.utils.arguments import parse_args
+from multi_sample_factory_examples.train_custom_multi_env import register_custom_components
 
 
 def main():
     """Script entry point."""
     register_custom_components()
-    cfg = custom_parse_args(evaluation=True)
+    cfg = parse_args(evaluation=True)
     status = enjoy(cfg)
     return status
 

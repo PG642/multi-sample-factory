@@ -4,19 +4,19 @@ import json
 import os
 import sys
 
-from multi_sample_factory.algorithms.utils.evaluation_config import add_eval_args
-from multi_sample_factory.envs.env_config import add_env_args, env_override_defaults
-from multi_sample_factory.utils.utils import log, AttrDict, cfg_file, get_git_commit_hash
+from sample_factory.algorithms.utils.evaluation_config import add_eval_args
+from sample_factory.envs.env_config import add_env_args, env_override_defaults
+from sample_factory.utils.utils import log, AttrDict, cfg_file, get_git_commit_hash
 
 
 def get_algo_class(algo):
     algo_class = None
 
     if algo == 'APPO':
-        from multi_sample_factory.algorithms.appo.appo import APPO
+        from sample_factory.algorithms.appo.appo import APPO
         algo_class = APPO
     elif algo == 'DUMMY_SAMPLER':
-        from multi_sample_factory.algorithms.dummy_sampler import DummySampler
+        from sample_factory.algorithms.dummy_sampler.sampler import DummySampler
         algo_class = DummySampler
     else:
         log.warning('Algorithm %s is not supported', algo)
@@ -32,10 +32,10 @@ def arg_parser(argv=None, evaluation=False):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
 
     # common args
-    parser.add_argument('--algo', type=str, default=None, required=True, help='Algo type to use (pass "APPO" if in doubt)')
+    parser.add_argument('--algo', type=str, default='APPO', required=True, help='Algo type to use (pass "APPO" if in doubt)')
     parser.add_argument('--env', type=str, default=None, required=True, help='Fully-qualified environment name in the form envfamily_envname, e.g. atari_breakout or doom_battle')
     parser.add_argument(
-        '--experiment', type=str, default=None, required=True,
+        '--experiment', type=str, default='default_experiment',
         help='Unique experiment name. This will also be the name for the experiment folder in the train dir.'
              'If the experiment folder with this name aleady exists the experiment will be RESUMED!'
              'Any parameters passed from command line that do not match the parameters stored in the experiment cfg.json file will be overridden.',
@@ -75,6 +75,17 @@ def parse_args(argv=None, evaluation=False, parser=None):
 
     # parse all the arguments (algo, env, and optionally evaluation)
     args = parser.parse_args(argv)
+    args = postprocess_args(args, argv, parser)
+
+    return args
+
+
+def postprocess_args(args, argv, parser):
+    """
+    Postprocessing after parse_args is called.
+    Makes it easy to use SF within another codebase which might have its own parse_args call.
+
+    """
 
     if args.help:
         parser.print_help()

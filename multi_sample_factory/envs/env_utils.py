@@ -1,4 +1,4 @@
-from multi_sample_factory.utils.utils import is_module_available, log
+from sample_factory.utils.utils import is_module_available, log
 from functools import wraps
 from time import sleep
 

@@ -2,9 +2,9 @@ import importlib
 import sys
 import argparse
 
-from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
-from multi_sample_factory.runner.run_slurm import add_slurm_args
-from multi_sample_factory.utils.utils import log
+from sample_factory.algorithms.utils.algo_utils import ExperimentStatus
+from sample_factory.runner.run_slurm import add_slurm_args
+from sample_factory.utils.utils import log
 
 
 def runner_argparser():
@@ -44,10 +44,10 @@ def main():
     run_description.experiment_suffix = args.experiment_suffix
 
     if args.runner == 'processes':
-        from multi_sample_factory.runner.run_processes import run
+        from sample_factory.runner.run_processes import run
         run(run_description, args)
     elif args.runner == 'slurm':
-        from multi_sample_factory.runner.run_slurm import run_slurm
+        from sample_factory.runner.run_slurm import run_slurm
         run_slurm(run_description, args)
 
     return ExperimentStatus.SUCCESS

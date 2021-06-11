@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from gym import spaces, Wrapper
 
-from multi_sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper, is_multiagent_env
-from multi_sample_factory.envs.create_env import create_env
-from multi_sample_factory.utils.get_available_gpus import get_gpus_without_triggering_pytorch_cuda_initialization
-from multi_sample_factory.utils.utils import log, memory_consumption_mb
+from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper, is_multiagent_env
+from sample_factory.envs.create_env import create_env
+from sample_factory.utils.get_available_gpus import get_gpus_without_triggering_pytorch_cuda_initialization
+from sample_factory.utils.utils import log, memory_consumption_mb
 
 CUDA_ENVVAR = 'CUDA_VISIBLE_DEVICES'
 

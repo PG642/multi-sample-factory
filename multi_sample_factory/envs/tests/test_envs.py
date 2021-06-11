@@ -4,12 +4,13 @@ import unittest
 from os.path import join
 from unittest import TestCase
 
-from multi_sample_factory.algorithms.utils.algo_utils import num_env_steps
-from multi_sample_factory.algorithms.utils.arguments import default_cfg
+from sample_factory.algorithms.utils.algo_utils import num_env_steps
+from sample_factory.algorithms.utils.arguments import default_cfg
+from sample_factory.envs.dmlab.dmlab_utils import string_to_hash_bucket
 
-from multi_sample_factory.envs.env_utils import dmlab_available, vizdoom_available
-from multi_sample_factory.utils.timing import Timing
-from multi_sample_factory.utils.utils import log, AttrDict
+from sample_factory.envs.env_utils import dmlab_available, vizdoom_available
+from sample_factory.utils.timing import Timing
+from sample_factory.utils.utils import log, AttrDict
 
 
 def default_doom_cfg():
@@ -63,12 +64,12 @@ class TestDoom(TestCase):
     # noinspection PyUnusedLocal
     @staticmethod
     def make_env_singleplayer(env_config):
-        from multi_sample_factory.envs.doom.doom_utils import make_doom_env
+        from sample_factory.envs.doom.doom_utils import make_doom_env
         return make_doom_env('doom_benchmark', cfg=default_doom_cfg(), env_config=env_config)
 
     @staticmethod
     def make_env_bots_hybrid_actions(env_config, **kwargs):
-        from multi_sample_factory.envs.doom.doom_utils import make_doom_env
+        from sample_factory.envs.doom.doom_utils import make_doom_env
         return make_doom_env('doom_deathmatch_bots', cfg=default_doom_cfg(), env_config=env_config, **kwargs)
 
     def test_doom_env(self):
@@ -87,7 +88,7 @@ class TestDoom(TestCase):
     #     test_multi_env_performance(self.make_env_bots_hybrid_actions, 'doom', num_envs=200, num_workers=20)
 
     def test_doom_two_color(self):
-        from multi_sample_factory.envs.doom.doom_utils import make_doom_env
+        from sample_factory.envs.doom.doom_utils import make_doom_env
         test_env_performance(
             lambda env_config: make_doom_env('doom_two_colors_easy', cfg=default_doom_cfg()), 'doom', verbose=False,
         )
@@ -103,7 +104,7 @@ class TestDoom(TestCase):
         env.reset()
         env.close()
 
-        from multi_sample_factory.envs.doom.doom_gym import VizdoomEnv
+        from sample_factory.envs.doom.doom_gym import VizdoomEnv
         demo_path = join(rec_dir, VizdoomEnv.demo_path(episode_idx=0))
 
         env = self.make_env_bots_hybrid_actions(None, custom_resolution='1920x1080')
@@ -119,7 +120,7 @@ class TestAtari(TestCase):
     # noinspection PyUnusedLocal
     @staticmethod
     def make_env(env_config):
-        from multi_sample_factory.envs.atari.atari_utils import make_atari_env
+        from sample_factory.envs.atari.atari_utils import make_atari_env
         return make_atari_env('atari_breakout', cfg=default_cfg(env='atari_breakout'))
 
     def test_atari_performance(self):
@@ -132,9 +133,21 @@ class TestDmlab(TestCase):
     # noinspection PyUnusedLocal
     @staticmethod
     def make_env(env_config):
-        from multi_sample_factory.envs.dmlab.dmlab_env import make_dmlab_env
+        from sample_factory.envs.dmlab.dmlab_env import make_dmlab_env
         return make_dmlab_env('dmlab_nonmatch', cfg=default_cfg(env='dmlab_nonmatch'), env_config=None)
 
     @unittest.skipUnless(dmlab_available(), 'Dmlab package not installed')
     def test_dmlab_performance(self):
         test_env_performance(self.make_env, 'dmlab')
+
+    def test_hash_bucket(self):
+        vocab_size = 42
+        data = {
+            'a cupful of liquid that was almost, but not quite, entirely unlike tea': 37,
+            'aaabbbccc': 28,
+            '12313123132': 28,
+            'RL': 24,
+            'dmlab': 35,
+        }
+        for s, h in data.items():
+            self.assertEqual(string_to_hash_bucket(s, vocab_size), h)

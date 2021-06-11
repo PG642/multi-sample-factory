@@ -4,11 +4,11 @@ import torch
 from torch import nn
 from torch.nn.utils import spectral_norm
 
-from multi_sample_factory.algorithms.utils.action_distributions import calc_num_logits, get_action_distribution, is_continuous_action_space
-from multi_sample_factory.algorithms.utils.algo_utils import EPS
-from multi_sample_factory.algorithms.utils.pytorch_utils import calc_num_elements
-from multi_sample_factory.utils.utils import AttrDict
-from multi_sample_factory.utils.utils import log
+from sample_factory.algorithms.utils.action_distributions import calc_num_logits, get_action_distribution, is_continuous_action_space
+from sample_factory.algorithms.utils.algo_utils import EPS
+from sample_factory.algorithms.utils.pytorch_utils import calc_num_elements
+from sample_factory.utils.utils import AttrDict
+from sample_factory.utils.utils import log
 
 
 # register custom encoders
@@ -16,8 +16,10 @@ ENCODER_REGISTRY = dict()
 
 
 def register_custom_encoder(custom_encoder_name, encoder_cls):
+    if custom_encoder_name in ENCODER_REGISTRY:
+        log.warning('Encoder %s already registered', custom_encoder_name)
+
     assert issubclass(encoder_cls, EncoderBase), 'Custom encoders must be derived from EncoderBase'
-    assert custom_encoder_name not in ENCODER_REGISTRY
 
     log.debug('Adding model class %r to registry (with name %s)', encoder_cls, custom_encoder_name)
     ENCODER_REGISTRY[custom_encoder_name] = encoder_cls

@@ -1,10 +1,10 @@
 import unittest
 from unittest import TestCase
 
-from multi_sample_factory.algorithms.utils.arguments import default_cfg
-from multi_sample_factory.envs.create_env import create_env
-from multi_sample_factory.envs.env_utils import minigrid_available
-from multi_sample_factory.utils.utils import log
+from sample_factory.algorithms.utils.arguments import default_cfg
+from sample_factory.envs.create_env import create_env
+from sample_factory.envs.env_utils import minigrid_available
+from sample_factory.utils.utils import log
 
 
 class TestMinigrid(TestCase):

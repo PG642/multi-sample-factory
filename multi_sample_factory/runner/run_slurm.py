@@ -10,7 +10,7 @@ import time
 from os.path import join
 from subprocess import Popen, PIPE
 
-from multi_sample_factory.utils.utils import log, str2bool
+from sample_factory.utils.utils import log, str2bool
 
 # TODO: this is not portable, a hack
 SBATCH_TEMPLATE = (

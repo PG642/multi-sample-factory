@@ -1,10 +1,10 @@
 import torch
 from torch import nn
 
-from multi_sample_factory.algorithms.appo.model_utils import get_obs_shape, nonlinearity, create_standard_encoder, EncoderBase, \
+from sample_factory.algorithms.appo.model_utils import get_obs_shape, nonlinearity, create_standard_encoder, EncoderBase, \
     register_custom_encoder
-from multi_sample_factory.algorithms.utils.pytorch_utils import calc_num_elements
-from multi_sample_factory.utils.utils import log
+from sample_factory.algorithms.utils.pytorch_utils import calc_num_elements
+from sample_factory.utils.utils import log
 
 
 class VizdoomEncoder(EncoderBase):

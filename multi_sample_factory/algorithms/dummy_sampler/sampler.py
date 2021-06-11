@@ -18,14 +18,14 @@ import numpy as np
 import psutil
 from multiprocessing.sharedctypes import RawValue
 
-from multi_sample_factory.algorithms.algorithm import AlgorithmBase
-from multi_sample_factory.algorithms.appo.appo_utils import make_env_func, set_gpus_for_process, set_global_cuda_envvars
-from multi_sample_factory.envs.create_env import create_env
-from multi_sample_factory.utils.timing import Timing
-from multi_sample_factory.utils.utils import log, AttrDict, set_process_cpu_affinity, str2bool, memory_consumption_mb
+from sample_factory.algorithms.algorithm import AlgorithmBase
+from sample_factory.algorithms.appo.appo_utils import make_env_func, set_gpus_for_process, set_global_cuda_envvars
+from sample_factory.envs.create_env import create_env
+from sample_factory.utils.timing import Timing
+from sample_factory.utils.utils import log, AttrDict, set_process_cpu_affinity, str2bool, memory_consumption_mb
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 

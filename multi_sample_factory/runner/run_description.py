@@ -5,7 +5,7 @@ import numpy as np
 
 from collections import OrderedDict
 
-from multi_sample_factory.utils.utils import ensure_dir_exists
+from sample_factory.utils.utils import ensure_dir_exists
 
 
 class ParamGenerator:

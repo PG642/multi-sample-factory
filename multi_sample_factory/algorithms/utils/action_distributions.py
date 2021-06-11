@@ -6,7 +6,7 @@ import torch
 from torch.distributions import Normal, Independent
 import torch.nn.functional as F
 
-from multi_sample_factory.utils.utils import log
+from sample_factory.utils.utils import log
 
 
 def calc_num_actions(action_space):

@@ -3,16 +3,16 @@ import unittest
 from multiprocessing import Process
 from unittest import TestCase
 
-from multi_sample_factory.envs.env_utils import vizdoom_available
-from multi_sample_factory.utils.utils import log, AttrDict
+from sample_factory.envs.env_utils import vizdoom_available
+from sample_factory.utils.utils import log, AttrDict
 
 
 @unittest.skipUnless(vizdoom_available(), 'Please install VizDoom to run a full test suite')
 class TestDoom(TestCase):
     @staticmethod
     def make_standard_dm(env_config):
-        from multi_sample_factory.envs.doom.doom_utils import make_doom_env
-        from multi_sample_factory.envs.tests.test_envs import default_doom_cfg
+        from sample_factory.envs.doom.doom_utils import make_doom_env
+        from sample_factory.envs.tests.test_envs import default_doom_cfg
 
         cfg = default_doom_cfg()
         cfg.env_frameskip = 2

@@ -2,7 +2,7 @@ import gym
 # noinspection PyUnresolvedReferences
 import gym_minigrid
 
-from multi_sample_factory.envs.env_wrappers import PixelFormatChwWrapper, RecordingWrapper
+from sample_factory.envs.env_wrappers import PixelFormatChwWrapper, RecordingWrapper
 
 
 class RenameImageObsWrapper(gym.ObservationWrapper):

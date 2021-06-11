@@ -1,6 +1,6 @@
 import gym
 
-from multi_sample_factory.envs.env_wrappers import ResizeWrapper, SkipAndStackFramesWrapper, SkipFramesWrapper, \
+from sample_factory.envs.env_wrappers import ResizeWrapper, SkipAndStackFramesWrapper, SkipFramesWrapper, \
     PixelFormatChwWrapper
 
 ATARI_W = ATARI_H = 84

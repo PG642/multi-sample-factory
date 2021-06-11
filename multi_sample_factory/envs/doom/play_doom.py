@@ -1,8 +1,8 @@
 import sys
 
-from multi_sample_factory.algorithms.utils.arguments import default_cfg
-from multi_sample_factory.envs.doom.doom_gym import VizdoomEnv
-from multi_sample_factory.envs.doom.doom_utils import doom_env_by_name, make_doom_env_impl
+from sample_factory.algorithms.utils.arguments import default_cfg
+from sample_factory.envs.doom.doom_gym import VizdoomEnv
+from sample_factory.envs.doom.doom_utils import doom_env_by_name, make_doom_env_impl
 
 
 def main():

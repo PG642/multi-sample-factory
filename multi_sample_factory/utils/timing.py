@@ -2,8 +2,8 @@ import psutil
 import time
 from collections import deque
 
-from multi_sample_factory.algorithms.utils.algo_utils import EPS
-from multi_sample_factory.utils.utils import AttrDict, log
+from sample_factory.algorithms.utils.algo_utils import EPS
+from sample_factory.utils.utils import AttrDict, log
 
 
 class AvgTime:

@@ -25,24 +25,26 @@ import torch
 from tensorboardX import SummaryWriter
 from torch.multiprocessing import JoinableQueue as TorchJoinableQueue
 
-from multi_sample_factory.algorithms.algorithm import ReinforcementLearningAlgorithm
-from multi_sample_factory.algorithms.appo.actor_worker import ActorWorker
-from multi_sample_factory.algorithms.appo.appo_utils import make_env_func, iterate_recursively, set_global_cuda_envvars
-from multi_sample_factory.algorithms.appo.learner import LearnerWorker
-from multi_sample_factory.algorithms.appo.policy_worker import PolicyWorker
-from multi_sample_factory.algorithms.appo.population_based_training import PopulationBasedTraining
-from multi_sample_factory.algorithms.appo.shared_buffers import SharedBuffers
-from multi_sample_factory.algorithms.utils.algo_utils import EXTRA_PER_POLICY_SUMMARIES, EXTRA_EPISODIC_STATS_PROCESSING, \
+from sample_factory.algorithms.algorithm import ReinforcementLearningAlgorithm
+from sample_factory.algorithms.appo.actor_worker import ActorWorker
+from sample_factory.algorithms.appo.appo_utils import make_env_func, iterate_recursively, set_global_cuda_envvars
+from sample_factory.algorithms.appo.learner import LearnerWorker
+from sample_factory.algorithms.appo.policy_worker import PolicyWorker
+from sample_factory.algorithms.appo.population_based_training import PopulationBasedTraining
+from sample_factory.algorithms.appo.shared_buffers import SharedBuffers
+from sample_factory.algorithms.utils.algo_utils import EXTRA_PER_POLICY_SUMMARIES, EXTRA_EPISODIC_STATS_PROCESSING, \
     ExperimentStatus
-from multi_sample_factory.envs.env_utils import get_default_reward_shaping
-from multi_sample_factory.utils.timing import Timing
-from multi_sample_factory.utils.utils import summaries_dir, experiment_dir, log, str2bool, memory_consumption_mb, cfg_file, \
+from sample_factory.envs.env_utils import get_default_reward_shaping
+from sample_factory.utils.timing import Timing
+from sample_factory.utils.utils import summaries_dir, experiment_dir, log, str2bool, memory_consumption_mb, cfg_file, \
     ensure_dir_exists, list_child_processes, kill_processes, AttrDict, done_filename, save_git_diff, init_file_logger
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
+    # noinspection PyUnresolvedReferences
+    import faster_fifo_reduction
 
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -159,10 +161,9 @@ class APPO(ReinforcementLearningAlgorithm):
                  'policy-lag may exceed this value.',
         )
         p.add_argument(
-            '--min_traj_buffers_per_worker', default=2, type=int,
-            help='How many shared rollout tensors to allocate per actor worker to exchange information between actors and learners'
-                 'Default value of 2 is fine for most workloads, except when differences in 1-step simulation time are extreme, like with some DMLab environments.'
-                 'If you see a lot of warnings about actor workers having to wait for trajectory buffers, try increasing this to 4-6, this should eliminate the problem at a cost of more RAM.',
+            '--traj_buffers_excess_ratio', default=1.3, type=float,
+            help='Increase this value to make sure the system always has enough free trajectory buffers (can be useful when i.e. a lot of inactive agents in multi-agent envs)'
+                 'Decrease this to 1.0 to save as much RAM as possible.',
         )
         p.add_argument(
             '--decorrelate_experience_max_seconds', default=10, type=int,

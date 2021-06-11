@@ -1,15 +1,19 @@
+import os
 import sys
 
 
-def get_gpus_without_triggering_pytorch_cuda_initialization(envvars):
+def get_gpus_without_triggering_pytorch_cuda_initialization(envvars=None):
+    if envvars is None:
+        envvars = os.environ
+
     import subprocess
     out = subprocess.run([sys.executable, '-m', 'multi_sample_factory.utils.get_available_gpus'], capture_output=True, env=envvars)
     text_output = out.stdout.decode()
     err_output = out.stderr.decode()
     returncode = out.returncode
 
-    from multi_sample_factory.utils.utils import log
-    if returncode or err_output:
+    from sample_factory.utils.utils import log
+    if returncode:
         log.error(
             'Querying available GPUs... return code %d, error: %s, stdout: %s', returncode, err_output, text_output,
         )

@@ -11,9 +11,9 @@ from os.path import join
 
 import numpy as np
 
-from multi_sample_factory.algorithms.appo.appo_utils import TaskType, iterate_recursively
-from multi_sample_factory.algorithms.utils.algo_utils import EPS
-from multi_sample_factory.utils.utils import log, experiment_dir
+from sample_factory.algorithms.appo.appo_utils import TaskType, iterate_recursively
+from sample_factory.algorithms.utils.algo_utils import EPS
+from sample_factory.utils.utils import log, experiment_dir
 
 
 def perturb_float(x, perturb_amount=1.2):
