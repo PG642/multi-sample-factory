@@ -9,14 +9,15 @@ else
 fi
 
 
-while true; do
-    read -p "Do you want to install the recommended version of anaconda?" yn
-    case $yn in
-        [Yy]* ) wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -P /work/${USER}/; bash Anaconda3-2021.05-Linux-x86_64.sh -b -p /work/${USER}/anaconda3; cd /work/${USER}/anaconda3; source ~/.bashrc; cd ..; rm Anaconda3-2021.05-Linux-x86_64.sh; break;;
-        [Nn]* ) break;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -P /work/${USER}/
+bash /work/${USER}/Anaconda3-2021.05-Linux-x86_64.sh -b -u -p /work/${USER}/anaconda3
+source /work/${USER}/anaconda3/bin/activate
+conda init
+cd /work/${USER}/anaconda3
+source ~/.bashrc
+cd ..
+rm Anaconda3-2021.05-Linux-x86_64.sh
+
 
 module purge
 module load cmake/3.8.2
@@ -35,4 +36,4 @@ conda install astunparse numpy ninja pyyaml mkl mkl-include setuptools cmake cff
 conda install -c pytorch magma-cuda111
 
 pip install $FILE
-echo "export LD_LIBRARY_PATH=/work/user/anaconda3/envs/multi-sample-factory/lib" >> ~/.bashrc
+echo "export LD_LIBRARY_PATH=/work/${USER}/anaconda3/envs/multi-sample-factory/lib" >> ~/.bashrc

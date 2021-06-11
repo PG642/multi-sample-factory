@@ -2,6 +2,8 @@ name: multi-sample-factory
 channels:
   - defaults
 dependencies:
+  - python=3.9.5=hdb3f193_3
+  - pip
   - pip:
     - numpy>=1.18.1
     - torch>=1.6
@@ -14,6 +16,5 @@ dependencies:
     - faster-fifo>=1.0.9
     - filelock
     - opencv-python
-    - mlagents-envs>=0.26,<0.27
-    - gym-unity>=0.26,<0.27
-    - python=3.9.5
+    - "mlagents-envs>=0.26,<0.27"
+    - "gym-unity>=0.26,<0.27"
