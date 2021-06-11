@@ -3,7 +3,7 @@ from gym.spaces import Discrete, Box
 
 import numpy as np
 
-from sample_factory.algorithms.utils.spaces.discretized import Discretized
+from multi_sample_factory.algorithms.utils.spaces.discretized import Discretized
 
 
 def key_to_action_basic(key):

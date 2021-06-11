@@ -1,6 +1,6 @@
 import socket
 
-from sample_factory.utils.utils import log
+from multi_sample_factory.utils.utils import log
 
 
 def is_udp_port_available(port):

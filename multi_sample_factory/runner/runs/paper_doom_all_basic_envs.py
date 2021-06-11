@@ -1,4 +1,4 @@
-from sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
+from multi_sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
 
 _params = ParamGrid([
     ('seed', [0, 1111, 2222, 3333, 4444, 5555, 6666, 7777, 8888, 9999]),

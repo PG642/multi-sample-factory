@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from sample_factory.algorithms.utils.action_distributions import calc_num_actions, calc_num_logits
+from multi_sample_factory.algorithms.utils.action_distributions import calc_num_actions, calc_num_logits
 
 
 class CPCA(nn.Module):

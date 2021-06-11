@@ -1,4 +1,4 @@
-from sample_factory.utils.utils import str2bool
+from multi_sample_factory.utils.utils import str2bool
 
 
 def add_doom_env_args(env, parser):

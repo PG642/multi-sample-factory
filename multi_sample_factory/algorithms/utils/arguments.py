@@ -4,19 +4,19 @@ import json
 import os
 import sys
 
-from sample_factory.algorithms.utils.evaluation_config import add_eval_args
-from sample_factory.envs.env_config import add_env_args, env_override_defaults
-from sample_factory.utils.utils import log, AttrDict, cfg_file, get_git_commit_hash
+from multi_sample_factory.algorithms.utils.evaluation_config import add_eval_args
+from multi_sample_factory.envs.env_config import add_env_args, env_override_defaults
+from multi_sample_factory.utils.utils import log, AttrDict, cfg_file, get_git_commit_hash
 
 
 def get_algo_class(algo):
     algo_class = None
 
     if algo == 'APPO':
-        from sample_factory.algorithms.appo.appo import APPO
+        from multi_sample_factory.algorithms.appo.appo import APPO
         algo_class = APPO
     elif algo == 'DUMMY_SAMPLER':
-        from sample_factory.algorithms.dummy_sampler.sampler import DummySampler
+        from multi_sample_factory.algorithms.dummy_sampler.sampler import DummySampler
         algo_class = DummySampler
     else:
         log.warning('Algorithm %s is not supported', algo)

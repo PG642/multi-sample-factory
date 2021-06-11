@@ -17,21 +17,21 @@ from torch.nn.utils.rnn import PackedSequence, invert_permutation
 from torch.multiprocessing import Process, Event as MultiprocessingEvent
 
 if os.name == 'nt':
-    from sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 
-from sample_factory.algorithms.appo.appo_utils import TaskType, list_of_dicts_to_dict_of_lists, memory_stats, cuda_envvars_for_policy, \
+from multi_sample_factory.algorithms.appo.appo_utils import TaskType, list_of_dicts_to_dict_of_lists, memory_stats, cuda_envvars_for_policy, \
     TensorBatcher, iter_dicts_recursively, copy_dict_structure, ObjectPool
-from sample_factory.algorithms.appo.model import create_actor_critic
-from sample_factory.algorithms.appo.aux_losses import CPCA
-from sample_factory.algorithms.appo.population_based_training import PbtTask
-from sample_factory.algorithms.utils.action_distributions import get_action_distribution, is_continuous_action_space
-from sample_factory.algorithms.utils.algo_utils import calculate_gae, EPS
-from sample_factory.algorithms.utils.pytorch_utils import to_scalar
-from sample_factory.utils.decay import LinearDecay
-from sample_factory.utils.timing import Timing
-from sample_factory.utils.utils import log, AttrDict, experiment_dir, ensure_dir_exists, join_or_kill, safe_get, safe_put
+from multi_sample_factory.algorithms.appo.model import create_actor_critic
+from multi_sample_factory.algorithms.appo.aux_losses import CPCA
+from multi_sample_factory.algorithms.appo.population_based_training import PbtTask
+from multi_sample_factory.algorithms.utils.action_distributions import get_action_distribution, is_continuous_action_space
+from multi_sample_factory.algorithms.utils.algo_utils import calculate_gae, EPS
+from multi_sample_factory.algorithms.utils.pytorch_utils import to_scalar
+from multi_sample_factory.utils.decay import LinearDecay
+from multi_sample_factory.utils.timing import Timing
+from multi_sample_factory.utils.utils import log, AttrDict, experiment_dir, ensure_dir_exists, join_or_kill, safe_get, safe_put
 
 
 # noinspection PyPep8Naming

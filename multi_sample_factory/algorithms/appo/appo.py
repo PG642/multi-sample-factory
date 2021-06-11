@@ -25,22 +25,22 @@ import torch
 from tensorboardX import SummaryWriter
 from torch.multiprocessing import JoinableQueue as TorchJoinableQueue
 
-from sample_factory.algorithms.algorithm import ReinforcementLearningAlgorithm
-from sample_factory.algorithms.appo.actor_worker import ActorWorker
-from sample_factory.algorithms.appo.appo_utils import make_env_func, iterate_recursively, set_global_cuda_envvars
-from sample_factory.algorithms.appo.learner import LearnerWorker
-from sample_factory.algorithms.appo.policy_worker import PolicyWorker
-from sample_factory.algorithms.appo.population_based_training import PopulationBasedTraining
-from sample_factory.algorithms.appo.shared_buffers import SharedBuffers
-from sample_factory.algorithms.utils.algo_utils import EXTRA_PER_POLICY_SUMMARIES, EXTRA_EPISODIC_STATS_PROCESSING, \
+from multi_sample_factory.algorithms.algorithm import ReinforcementLearningAlgorithm
+from multi_sample_factory.algorithms.appo.actor_worker import ActorWorker
+from multi_sample_factory.algorithms.appo.appo_utils import make_env_func, iterate_recursively, set_global_cuda_envvars
+from multi_sample_factory.algorithms.appo.learner import LearnerWorker
+from multi_sample_factory.algorithms.appo.policy_worker import PolicyWorker
+from multi_sample_factory.algorithms.appo.population_based_training import PopulationBasedTraining
+from multi_sample_factory.algorithms.appo.shared_buffers import SharedBuffers
+from multi_sample_factory.algorithms.utils.algo_utils import EXTRA_PER_POLICY_SUMMARIES, EXTRA_EPISODIC_STATS_PROCESSING, \
     ExperimentStatus
-from sample_factory.envs.env_utils import get_default_reward_shaping
-from sample_factory.utils.timing import Timing
-from sample_factory.utils.utils import summaries_dir, experiment_dir, log, str2bool, memory_consumption_mb, cfg_file, \
+from multi_sample_factory.envs.env_utils import get_default_reward_shaping
+from multi_sample_factory.utils.timing import Timing
+from multi_sample_factory.utils.utils import summaries_dir, experiment_dir, log, str2bool, memory_consumption_mb, cfg_file, \
     ensure_dir_exists, list_child_processes, kill_processes, AttrDict, done_filename, save_git_diff, init_file_logger
 
 if os.name == 'nt':
-    from sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
     # noinspection PyUnresolvedReferences

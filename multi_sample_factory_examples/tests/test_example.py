@@ -4,11 +4,11 @@ import unittest
 from os.path import isdir
 from unittest import TestCase
 
-from sample_factory.algorithms.appo.enjoy_appo import enjoy
-from sample_factory.algorithms.utils.algo_utils import ExperimentStatus
+from multi_sample_factory.algorithms.appo.enjoy_appo import enjoy
+from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory_examples.train_custom_env_custom_model import register_custom_components, custom_parse_args
-from sample_factory.run_algorithm import run_algorithm
-from sample_factory.utils.utils import experiment_dir
+from multi_sample_factory.run_algorithm import run_algorithm
+from multi_sample_factory.utils.utils import experiment_dir
 
 
 @unittest.skipIf(

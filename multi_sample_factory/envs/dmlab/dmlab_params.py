@@ -1,7 +1,7 @@
 import os
 from os.path import join
 
-from sample_factory.utils.utils import str2bool
+from multi_sample_factory.utils.utils import str2bool
 
 
 def dmlab_override_defaults(env, parser):

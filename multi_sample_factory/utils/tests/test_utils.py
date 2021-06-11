@@ -1,6 +1,6 @@
 from unittest import TestCase
-from sample_factory.utils.utils import cores_for_worker_process
-from sample_factory.utils.network import is_udp_port_available
+from multi_sample_factory.utils.utils import cores_for_worker_process
+from multi_sample_factory.utils.network import is_udp_port_available
 
 
 class TestUtils(TestCase):

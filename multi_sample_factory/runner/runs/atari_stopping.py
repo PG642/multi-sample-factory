@@ -1,4 +1,4 @@
-from sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
+from multi_sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
 
 _params = ParamGrid([
     ('env', ['atari_breakout', 'atari_spaceinvaders', 'atari_qbert', 'atari_mspacman']),

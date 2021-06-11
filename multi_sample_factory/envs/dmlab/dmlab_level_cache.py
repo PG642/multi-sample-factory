@@ -6,7 +6,7 @@ import shutil
 from os.path import join
 from pathlib import Path
 
-from sample_factory.utils.utils import ensure_dir_exists, log, safe_ensure_dir_exists
+from multi_sample_factory.utils.utils import ensure_dir_exists, log, safe_ensure_dir_exists
 
 
 LEVEL_SEEDS_FILE_EXT = 'dm_lvl_seeds'

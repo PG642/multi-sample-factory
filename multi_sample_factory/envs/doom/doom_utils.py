@@ -4,22 +4,22 @@ from os.path import join
 
 from gym.spaces import Discrete
 
-from sample_factory.envs.doom.action_space import doom_action_space, \
+from multi_sample_factory.envs.doom.action_space import doom_action_space, \
     doom_action_space_full_discretized, doom_action_space_basic, doom_action_space_discretized_no_weap, \
     doom_action_space_extended, doom_turn_and_attack_only
-from sample_factory.envs.doom.doom_gym import VizdoomEnv
+from multi_sample_factory.envs.doom.doom_gym import VizdoomEnv
 
-from sample_factory.envs.doom.doom_model import register_models
-from sample_factory.envs.doom.wrappers.additional_input import DoomAdditionalInput
-from sample_factory.envs.doom.wrappers.bot_difficulty import BotDifficultyWrapper
-from sample_factory.envs.doom.wrappers.multiplayer_stats import MultiplayerStatsWrapper
-from sample_factory.envs.doom.wrappers.observation_space import SetResolutionWrapper, resolutions
-from sample_factory.envs.doom.wrappers.reward_shaping import true_reward_final_position, DoomRewardShapingWrapper, \
+from multi_sample_factory.envs.doom.doom_model import register_models
+from multi_sample_factory.envs.doom.wrappers.additional_input import DoomAdditionalInput
+from multi_sample_factory.envs.doom.wrappers.bot_difficulty import BotDifficultyWrapper
+from multi_sample_factory.envs.doom.wrappers.multiplayer_stats import MultiplayerStatsWrapper
+from multi_sample_factory.envs.doom.wrappers.observation_space import SetResolutionWrapper, resolutions
+from multi_sample_factory.envs.doom.wrappers.reward_shaping import true_reward_final_position, DoomRewardShapingWrapper, \
     REWARD_SHAPING_DEATHMATCH_V0, true_reward_frags, REWARD_SHAPING_DEATHMATCH_V1, REWARD_SHAPING_BATTLE
-from sample_factory.envs.doom.wrappers.scenario_wrappers.gathering_reward_shaping import DoomGatheringRewardShaping
-from sample_factory.envs.env_wrappers import ResizeWrapper, RewardScalingWrapper, TimeLimitWrapper, RecordingWrapper, \
+from multi_sample_factory.envs.doom.wrappers.scenario_wrappers.gathering_reward_shaping import DoomGatheringRewardShaping
+from multi_sample_factory.envs.env_wrappers import ResizeWrapper, RewardScalingWrapper, TimeLimitWrapper, RecordingWrapper, \
     PixelFormatChwWrapper
-from sample_factory.utils.utils import log
+from multi_sample_factory.utils.utils import log
 
 
 VIZDOOM_INITIALIZED = False
@@ -194,7 +194,7 @@ def make_doom_env_impl(
     else:
         timelimit = cfg.timelimit if cfg.timelimit is not None else doom_spec.timelimit
 
-        from sample_factory.envs.doom.multiplayer.doom_multiagent import VizdoomEnvMultiplayer
+        from multi_sample_factory.envs.doom.multiplayer.doom_multiagent import VizdoomEnvMultiplayer
         env = VizdoomEnvMultiplayer(
             doom_spec.action_space, doom_spec.env_spec_file,
             player_id=player_id, num_agents=num_agents, max_num_players=max_num_players, num_bots=num_bots,
@@ -280,7 +280,7 @@ def make_doom_multiplayer_env(doom_spec, cfg=None, env_config=None, **kwargs):
     if is_multiagent:
         # create a wrapper that treats multiple game instances as a single multi-agent environment
 
-        from sample_factory.envs.doom.multiplayer.doom_multiagent_wrapper import MultiAgentEnv
+        from multi_sample_factory.envs.doom.multiplayer.doom_multiagent_wrapper import MultiAgentEnv
         env = MultiAgentEnv(
             num_agents=num_agents,
             make_env_func=make_env_func,
@@ -289,7 +289,7 @@ def make_doom_multiplayer_env(doom_spec, cfg=None, env_config=None, **kwargs):
         )
     else:
         # if we have only one agent, there's no need for multi-agent wrapper
-        from sample_factory.envs.doom.multiplayer.doom_multiagent_wrapper import init_multiplayer_env
+        from multi_sample_factory.envs.doom.multiplayer.doom_multiagent_wrapper import init_multiplayer_env
         env = init_multiplayer_env(make_env_func, player_id=0, env_config=env_config)
 
     return env

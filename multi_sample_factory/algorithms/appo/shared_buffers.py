@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from gym import spaces
 
-from sample_factory.algorithms.appo.appo_utils import copy_dict_structure, iter_dicts_recursively, iterate_recursively
-from sample_factory.algorithms.appo.model_utils import get_hidden_size
-from sample_factory.algorithms.utils.action_distributions import calc_num_logits, calc_num_actions
-from sample_factory.utils.utils import log
+from multi_sample_factory.algorithms.appo.appo_utils import copy_dict_structure, iter_dicts_recursively, iterate_recursively
+from multi_sample_factory.algorithms.appo.model_utils import get_hidden_size
+from multi_sample_factory.algorithms.utils.action_distributions import calc_num_logits, calc_num_actions
+from multi_sample_factory.utils.utils import log
 
 
 def to_torch_dtype(numpy_dtype):

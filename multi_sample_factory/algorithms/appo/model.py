@@ -1,12 +1,12 @@
 import torch
 from torch import nn
 
-from sample_factory.algorithms.appo.model_utils import create_encoder, create_core, \
+from multi_sample_factory.algorithms.appo.model_utils import create_encoder, create_core, \
     ActionParameterizationContinuousNonAdaptiveStddev, \
     ActionParameterizationDefault, normalize_obs
-from sample_factory.algorithms.utils.action_distributions import sample_actions_log_probs, is_continuous_action_space
-from sample_factory.utils.timing import Timing
-from sample_factory.utils.utils import AttrDict
+from multi_sample_factory.algorithms.utils.action_distributions import sample_actions_log_probs, is_continuous_action_space
+from multi_sample_factory.utils.timing import Timing
+from multi_sample_factory.utils.utils import AttrDict
 
 
 class _ActorCriticBase(nn.Module):

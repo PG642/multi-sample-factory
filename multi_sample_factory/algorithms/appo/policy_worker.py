@@ -9,10 +9,10 @@ import psutil
 import torch
 from torch.multiprocessing import Process as TorchProcess
 
-from sample_factory.algorithms.appo.appo_utils import TaskType, memory_stats, cuda_envvars_for_policy
-from sample_factory.algorithms.appo.model import create_actor_critic
-from sample_factory.utils.timing import Timing
-from sample_factory.utils.utils import AttrDict, log, join_or_kill
+from multi_sample_factory.algorithms.appo.appo_utils import TaskType, memory_stats, cuda_envvars_for_policy
+from multi_sample_factory.algorithms.appo.model import create_actor_critic
+from multi_sample_factory.utils.timing import Timing
+from multi_sample_factory.utils.utils import AttrDict, log, join_or_kill
 
 
 def dict_of_lists_append(dict_of_lists, new_data, index):

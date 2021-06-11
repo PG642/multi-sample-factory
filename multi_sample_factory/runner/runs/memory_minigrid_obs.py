@@ -1,4 +1,4 @@
-from sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
+from multi_sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
 
 _params = ParamGrid([
     ('env', ['MiniGrid-MemoryS7-v0', 'MiniGrid-RedBlueDoors-8x8-v0', 'MiniGrid-MemoryS17Random-v0']),

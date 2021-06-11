@@ -1,6 +1,6 @@
 import gym
 
-from sample_factory.utils.utils import log
+from multi_sample_factory.utils.utils import log
 
 
 class BotDifficultyWrapper(gym.Wrapper):

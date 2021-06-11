@@ -1,9 +1,9 @@
 from filelock import FileLock, Timeout
 from ray.tune import register_env
 
-from sample_factory.algorithms.utils.arguments import default_cfg
-from sample_factory.envs.dmlab.dmlab_env import DMLAB_ENVS, make_dmlab_env
-from sample_factory.envs.doom.doom_utils import DOOM_ENVS, make_doom_env
+from multi_sample_factory.algorithms.utils.arguments import default_cfg
+from multi_sample_factory.envs.dmlab.dmlab_env import DMLAB_ENVS, make_dmlab_env
+from multi_sample_factory.envs.doom.doom_utils import DOOM_ENVS, make_doom_env
 
 DOOM_LOCK_PATH = '/tmp/doom_rllib_lock'
 

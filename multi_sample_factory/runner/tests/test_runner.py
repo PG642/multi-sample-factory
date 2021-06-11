@@ -6,10 +6,10 @@ import numpy as np
 
 from unittest import TestCase
 
-from sample_factory.runner.run import runner_argparser
-from sample_factory.runner.run_description import ParamGrid, ParamList, Experiment, RunDescription
-from sample_factory.runner.run_processes import run
-from sample_factory.utils.utils import ensure_dir_exists, project_tmp_dir
+from multi_sample_factory.runner.run import runner_argparser
+from multi_sample_factory.runner.run_description import ParamGrid, ParamList, Experiment, RunDescription
+from multi_sample_factory.runner.run_processes import run
+from multi_sample_factory.utils.utils import ensure_dir_exists, project_tmp_dir
 
 
 class TestParams(TestCase):

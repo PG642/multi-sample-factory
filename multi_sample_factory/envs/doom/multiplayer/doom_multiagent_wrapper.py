@@ -10,11 +10,11 @@ import filelock
 import gym
 from filelock import FileLock
 
-from sample_factory.envs.doom.doom_gym import doom_lock_file
-from sample_factory.envs.doom.doom_render import concat_grid, cvt_doom_obs
-from sample_factory.envs.doom.multiplayer.doom_multiagent import find_available_port, DEFAULT_UDP_PORT
-from sample_factory.envs.env_utils import RewardShapingInterface, get_default_reward_shaping
-from sample_factory.utils.utils import log
+from multi_sample_factory.envs.doom.doom_gym import doom_lock_file
+from multi_sample_factory.envs.doom.doom_render import concat_grid, cvt_doom_obs
+from multi_sample_factory.envs.doom.multiplayer.doom_multiagent import find_available_port, DEFAULT_UDP_PORT
+from multi_sample_factory.envs.env_utils import RewardShapingInterface, get_default_reward_shaping
+from multi_sample_factory.utils.utils import log
 from functools import wraps
 from time import sleep
 

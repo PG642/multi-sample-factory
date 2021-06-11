@@ -4,9 +4,9 @@ from collections import deque
 
 import gym
 
-from sample_factory.algorithms.utils.algo_utils import EPS
-from sample_factory.envs.env_utils import RewardShapingInterface
-from sample_factory.utils.utils import log
+from multi_sample_factory.algorithms.utils.algo_utils import EPS
+from multi_sample_factory.envs.env_utils import RewardShapingInterface
+from multi_sample_factory.utils.utils import log
 
 NUM_WEAPONS = 8
 

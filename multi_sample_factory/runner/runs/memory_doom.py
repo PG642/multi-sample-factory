@@ -1,4 +1,4 @@
-from sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
+from multi_sample_factory.runner.run_description import RunDescription, Experiment, ParamGrid
 
 _params = ParamGrid([
     ('env', ['doom_two_colors_easy', 'doom_two_colors_hard']),

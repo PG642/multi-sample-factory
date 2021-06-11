@@ -1,4 +1,4 @@
-from sample_factory.envs.env_registry import global_env_registry
+from multi_sample_factory.envs.env_registry import global_env_registry
 
 
 def create_env(full_env_name, cfg=None, env_config=None):

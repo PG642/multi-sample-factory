@@ -1,6 +1,6 @@
 import sys
 
-from sample_factory.algorithms.appo.enjoy_appo import enjoy
+from multi_sample_factory.algorithms.appo.enjoy_appo import enjoy
 from multi_sample_factory_examples.train_gym_env import register_custom_components, custom_parse_args
 
 

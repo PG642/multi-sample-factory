@@ -2,7 +2,7 @@ import os
 from abc import ABC
 from os.path import join
 
-from sample_factory.utils.utils import str2bool
+from multi_sample_factory.utils.utils import str2bool
 
 
 class AlgorithmBase:

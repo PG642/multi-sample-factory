@@ -6,7 +6,7 @@ import sys
 import time
 from os.path import join
 
-from sample_factory.utils.utils import log, ensure_dir_exists
+from multi_sample_factory.utils.utils import log, ensure_dir_exists
 
 
 def run(run_description, args):

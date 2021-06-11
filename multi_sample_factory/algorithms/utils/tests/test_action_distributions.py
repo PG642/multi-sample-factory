@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from sample_factory.algorithms.utils.action_distributions import get_action_distribution, calc_num_logits, \
+from multi_sample_factory.algorithms.utils.action_distributions import get_action_distribution, calc_num_logits, \
     sample_actions_log_probs
-from sample_factory.utils.timing import Timing
-from sample_factory.utils.utils import log
+from multi_sample_factory.utils.timing import Timing
+from multi_sample_factory.utils.utils import log
 
 
 class TestActionDistributions(TestCase):
