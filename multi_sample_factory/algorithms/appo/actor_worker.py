@@ -146,6 +146,8 @@ class ActorState:
         """
         if self.integer_actions:
             actions = self.last_actions.astype(np.int32)
+        else:
+            actions = self.last_actions
 
         if len(actions) == 1:
             actions = actions.item()
