@@ -16,3 +16,4 @@ dependencies:
     - opencv-python
     - mlagents-envs>=0.26,<0.27
     - gym-unity>=0.26,<0.27
+    - python=3.9.5
