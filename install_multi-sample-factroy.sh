@@ -12,8 +12,8 @@ fi
 while true; do
     read -p "Do you want to install the recommended version of anaconda?" yn
     case $yn in
-        [Yy]* ) wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh; bash Anaconda3-2021.05-Linux-x86_64.sh -b -p /work/${USER}/anaconda3; cd /work/${USER}/anaconda3; source ~/.bashrc; cd ..; rm Anaconda3-2021.05-Linux-x86_64.sh; break;;
-        [Nn]* ) exit;;
+        [Yy]* ) wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -P /work/${USER}/; bash Anaconda3-2021.05-Linux-x86_64.sh -b -p /work/${USER}/anaconda3; cd /work/${USER}/anaconda3; source ~/.bashrc; cd ..; rm Anaconda3-2021.05-Linux-x86_64.sh; break;;
+        [Nn]* ) break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
