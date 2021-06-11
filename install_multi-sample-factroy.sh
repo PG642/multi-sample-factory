@@ -4,7 +4,8 @@ FILE=/work/${USER}/torch-1.8.0a0+unknown-cp39-cp39-linux_x86_64.whl
 if [ -f "$FILE" ]; then
     echo "$FILE exists!"
 else 
-    echo "$FILE does not exist. Please download the torch wheel file!"; exit;;
+    echo "$FILE does not exist. Please download the torch wheel file!"
+    exit
 fi
 
 
