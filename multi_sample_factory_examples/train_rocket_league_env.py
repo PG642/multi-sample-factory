@@ -50,7 +50,7 @@ def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
                                      side_channels=[],
                                      worker_id=0)
 
-    env = UnityToGymWrapper(unity_env, allow_multiple_obs=True)
+    env = UnityToGymWrapper(unity_env)
     return env
 
 
