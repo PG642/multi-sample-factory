@@ -42,17 +42,15 @@ def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
     if env_config != None:
         unity_env = UnityEnvironment(file_name=full_env_name,
                                      side_channels=[],
-                                     worker_id=env_config.env_id,
-                                     allow_multiple_obs=True)
+                                     worker_id=env_config.env_id)
     
     #this is a temporary environment with no env_config
     else:
         unity_env = UnityEnvironment(file_name=full_env_name,
                                      side_channels=[],
-                                     worker_id=0,
-                                     allow_multiple_obs=True)
+                                     worker_id=0)
 
-    env = UnityToGymWrapper(unity_env)
+    env = UnityToGymWrapper(unity_env, allow_multiple_obs=True)
     return env
 
 
