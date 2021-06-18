@@ -1,24 +1,19 @@
 """
-An example that shows how to use SampleFactory with a rocket_league_ env. To use this script, ypu need to add the rocket_league_saving_training_single executable in the root directory of this repo.
+An example that shows how to use SampleFactory with a Rocket League env.
 
-Example command line for saving_training_single:
-python -m multi_sample_factory_examples.train_rocket_league_env --algo=APPO --use_rnn=False --num_envs_per_worker=20 --policy_workers_per_policy=2 --recurrence=1 --with_vtrace=False --batch_size=512 --hidden_size=256 --encoder_type=mlp --encoder_subtype=mlp_mujoco --reward_scale=0.1 --save_every_sec=10 --experiment_summaries_interval=10 --experiment=example_rocket_league_saving_training_single --env=rocket_league_saving_training_single
-python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --experiment=example_enjoy_rocket_league_saving_training_single --env=rocket_league_saving_training_single
+Example command line for rocket_league_saving_training_single:
+python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --experiment=example_rocket_league_saving_training_single --env=rocket_league_saving_training_single
 
 """
 
 import sys
-import fcntl
-import os
 
-
-import gym
-
-from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
-from multi_sample_factory.envs.env_registry import global_env_registry
-from multi_sample_factory.run_algorithm import run_algorithm
 from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
+
+from multi_sample_factory.algorithms.appo.enjoy_appo import enjoy
+from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
+from multi_sample_factory.envs.env_registry import global_env_registry
 
 
 def custom_parse_args(argv=None, evaluation=False):
@@ -38,18 +33,12 @@ def custom_parse_args(argv=None, evaluation=False):
 def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
     assert full_env_name.startswith('rocket_league_')
     rocket_league_env_name = full_env_name.split('rocket_league_')[1]
-    
-    if env_config != None:
-        unity_env = UnityEnvironment(file_name=full_env_name,
-                                     side_channels=[],
-                                     worker_id=env_config.env_id)
-    
-    #this is a temporary environment with no env_config
-    else:
-        unity_env = UnityEnvironment(file_name=full_env_name,
+
+
+    unity_env = UnityEnvironment(file_name="../"+full_env_name,
                                      side_channels=[],
                                      worker_id=0)
-
+    
     env = UnityToGymWrapper(unity_env)
     return env
 
@@ -72,13 +61,20 @@ def register_custom_components():
         override_default_params_func=override_default_params_func,
     )
 
-
 def main():
     """Script entry point."""
+    # This is a non-blocking call that only loads the environment.
+    #unity_env = UnityEnvironment(file_name="../rocket_league_saving_training_single", seed=1, side_channels=[])
+    # Start interacting with the environment.
+    #print("blub")
+    #env = UnityToGymWrapper(unity_env)
+    #env.reset()
+    
     register_custom_components()
-    cfg = custom_parse_args()
-    status = run_algorithm(cfg)
+    cfg = custom_parse_args(evaluation=True)
+    status = enjoy(cfg)
     return status
+    #behavior_names = env.behavior_specs.keys()
 
 
 if __name__ == '__main__':
