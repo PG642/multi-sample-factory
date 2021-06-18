@@ -1,14 +1,15 @@
 """
 An example that shows how to use SampleFactory with a Rocket League env.
 
-Example command line for rocket_league_saving_trainig_single:
-python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --experiment=example_rocket_league_saving_trainig_single --env=rocket_league_saving_trainig_single
+Example command line for rocket_league_saving_training_single:
+python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --experiment=example_rocket_league_saving_training_single --env=rocket_league_saving_training_single
 
 """
 
 import sys
 
 from mlagents_envs.environment import UnityEnvironment
+from gym_unity.envs import UnityToGymWrapper
 
 from multi_sample_factory.algorithms.appo.enjoy_appo import enjoy
 from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
@@ -33,16 +34,12 @@ def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
     assert full_env_name.startswith('rocket_league_')
     rocket_league_env_name = full_env_name.split('rocket_league_')[1]
 
-    if env_config != None:
-        env = UnityEnvironment(file_name=full_env_name,
-                                     side_channels=[],
-                                     worker_id=env_config.env_id)
 
-    # this is a temporary environment with no env_config
-    else:
-        env = UnityEnvironment(file_name=full_env_name,
+    unity_env = UnityEnvironment(file_name="../"+full_env_name,
                                      side_channels=[],
                                      worker_id=0)
+    
+    env = UnityToGymWrapper(unity_env)
     return env
 
 
@@ -67,10 +64,17 @@ def register_custom_components():
 def main():
     """Script entry point."""
     # This is a non-blocking call that only loads the environment.
-    env = UnityEnvironment(file_name="rocket_league_saving_trainig_single", seed=1, side_channels=[])
+    #unity_env = UnityEnvironment(file_name="../rocket_league_saving_training_single", seed=1, side_channels=[])
     # Start interacting with the environment.
-    env.reset()
-    behavior_names = env.behavior_specs.keys()
+    #print("blub")
+    #env = UnityToGymWrapper(unity_env)
+    #env.reset()
+    
+    register_custom_components()
+    cfg = custom_parse_args(evaluation=True)
+    status = enjoy(cfg)
+    return status
+    #behavior_names = env.behavior_specs.keys()
 
 
 if __name__ == '__main__':
