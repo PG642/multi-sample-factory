@@ -334,7 +334,7 @@ def experiments_dir(cfg):
 
 
 def experiment_dir(cfg):
-    experiment = cfg.experiment
+    experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
     experiments_root = cfg.experiments_root
 
     if experiments_root is None:
