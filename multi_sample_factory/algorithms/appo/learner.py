@@ -15,6 +15,7 @@ import psutil
 import torch
 from torch.nn.utils.rnn import PackedSequence, invert_permutation
 from torch.multiprocessing import Process, Event as MultiprocessingEvent
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
     from multi_sample_factory.utils import Queue as MpQueue
@@ -190,6 +191,29 @@ class LearnerWorker:
 
         self.worker_idx = worker_idx
         self.policy_id = policy_id
+
+        host_list = os.getenv('MYHOSTLIST').split(",")
+        master_addr = host_list[0].split("*", 1)[0]
+        master_port = 29500
+        world_size = 4 #TODO: set dynamically
+        self.rank = int(os.environ['SLURM_PROCID'])
+
+        store = torch.distributed.TCPStore (
+            master_addr,
+            master_port,
+            world_size,
+            self.rank == 0,
+        )
+
+        backend="gloo"
+
+        # processing group
+        torch.distributed.init_process_group (
+            backend = backend, # Message passing interface
+            world_size = world_size,
+            rank = self.rank,
+            store = store,
+        )
 
         self.cfg = cfg
 
@@ -559,6 +583,8 @@ class LearnerWorker:
         return checkpoint
 
     def _save(self):
+        if(self.rank != 0):
+            return
         checkpoint = self._get_checkpoint_dict()
         assert checkpoint is not None
 
@@ -996,7 +1022,8 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        self.actor_critic = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing)
+        model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing)
+        self.actor_critic = DDP(model)
         self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
@@ -1300,6 +1327,8 @@ class LearnerWorker:
         self.initialized_event.wait()
 
     def save_model(self, timeout=None):
+        if(self.rank != 0):
+            return
         self.model_saved_event.clear()
         save_task = (PbtTask.SAVE_MODEL, self.policy_id)
         self.task_queue.put((TaskType.PBT, save_task))
@@ -1316,3 +1345,6 @@ class LearnerWorker:
 
     def join(self):
         join_or_kill(self.process)
+
+    def get_rank():
+        return int(os.environ['SLURM_PROCID'])
