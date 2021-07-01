@@ -192,29 +192,6 @@ class LearnerWorker:
         self.worker_idx = worker_idx
         self.policy_id = policy_id
 
-        host_list = os.getenv('MYHOSTLIST').split(",")
-        master_addr = host_list[0].split("*", 1)[0]
-        master_port = 29500
-        world_size = 4 #TODO: set dynamically
-        self.rank = int(os.environ['SLURM_PROCID'])
-
-        store = torch.distributed.TCPStore (
-            master_addr,
-            master_port,
-            world_size,
-            self.rank == 0,
-        )
-
-        backend="gloo"
-
-        # processing group
-        torch.distributed.init_process_group (
-            backend = backend, # Message passing interface
-            world_size = world_size,
-            rank = self.rank,
-            store = store,
-        )
-
         self.cfg = cfg
 
         # PBT-related stuff
@@ -329,6 +306,7 @@ class LearnerWorker:
 
     def _broadcast_model_weights(self):
         state_dict = self.actor_critic.state_dict()
+        torch.nn.modules.utils.consume_prefix_in_state_dict_if_present(state_dict, "module.")
         policy_version = self.train_step
         log.debug('Broadcast model weights for model version %d', policy_version)
         model_state = (policy_version, state_dict)
@@ -583,8 +561,8 @@ class LearnerWorker:
         return checkpoint
 
     def _save(self):
-        if(self.rank != 0):
-            return
+        #if(self.rank != 0):
+        #    return
         checkpoint = self._get_checkpoint_dict()
         assert checkpoint is not None
 
@@ -1022,9 +1000,32 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing)
+        host_list = os.getenv('MYHOSTLIST').split(",")
+        master_addr = host_list[0].split("*", 1)[0]
+        master_port = 29500
+        world_size = 2 #TODO: set dynamically
+        rank = int(os.environ['SLURM_PROCID'])
+
+        store = torch.distributed.TCPStore (
+            master_addr,
+            master_port,
+            world_size,
+            rank == 0,
+        )
+
+        backend="gloo"
+
+        # processing group
+        torch.distributed.init_process_group (
+            backend = backend, # Message passing interface
+            world_size = world_size,
+            rank = rank,
+            store = store,
+        )
+        
+        model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing).to(0)
         self.actor_critic = DDP(model)
-        self.actor_critic.model_to_device(self.device)
+        #self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
         if self.cfg.use_cpc:
@@ -1046,6 +1047,7 @@ class LearnerWorker:
             self._load_state(checkpoint_dict, load_progress=load_progress)
 
     def initialize(self, timing):
+        log.info("1##################")
         with timing.timeit('init'):
             # initialize the Torch modules
             if self.cfg.seed is None:
@@ -1057,8 +1059,9 @@ class LearnerWorker:
 
             # this does not help with a single experiment
             # but seems to do better when we're running more than one experiment in parallel
+            log.info("2##################")
             torch.set_num_threads(1)
-
+            log.info("3##################")
             if self.cfg.device == 'gpu':
                 torch.backends.cudnn.benchmark = True
 
@@ -1067,8 +1070,9 @@ class LearnerWorker:
                 self.device = torch.device('cuda', index=0)
             else:
                 self.device = torch.device('cpu')
-
+            log.info("init model start")
             self.init_model(timing)
+            log.info("init model done")
             params = list(self.actor_critic.parameters())
 
             if self.aux_loss_module is not None:
@@ -1080,8 +1084,9 @@ class LearnerWorker:
                 betas=(self.cfg.adam_beta1, self.cfg.adam_beta2),
                 eps=self.cfg.adam_eps,
             )
-
+            log.info("load from checkpoint start")
             self.load_from_checkpoint(self.policy_id)
+            log.info("load from checkpoint done")
 
             self._broadcast_model_weights()  # sync the very first version of the weights
 
@@ -1327,8 +1332,8 @@ class LearnerWorker:
         self.initialized_event.wait()
 
     def save_model(self, timeout=None):
-        if(self.rank != 0):
-            return
+        #if(self.rank != 0):
+        #    return
         self.model_saved_event.clear()
         save_task = (PbtTask.SAVE_MODEL, self.policy_id)
         self.task_queue.put((TaskType.PBT, save_task))
