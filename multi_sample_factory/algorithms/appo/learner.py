@@ -1047,7 +1047,6 @@ class LearnerWorker:
             self._load_state(checkpoint_dict, load_progress=load_progress)
 
     def initialize(self, timing):
-        log.info("1##################")
         with timing.timeit('init'):
             # initialize the Torch modules
             if self.cfg.seed is None:
@@ -1059,9 +1058,7 @@ class LearnerWorker:
 
             # this does not help with a single experiment
             # but seems to do better when we're running more than one experiment in parallel
-            log.info("2##################")
             torch.set_num_threads(1)
-            log.info("3##################")
             if self.cfg.device == 'gpu':
                 torch.backends.cudnn.benchmark = True
 
@@ -1070,9 +1067,7 @@ class LearnerWorker:
                 self.device = torch.device('cuda', index=0)
             else:
                 self.device = torch.device('cpu')
-            log.info("init model start")
             self.init_model(timing)
-            log.info("init model done")
             params = list(self.actor_critic.module.parameters())
 
             if self.aux_loss_module is not None:
@@ -1084,9 +1079,7 @@ class LearnerWorker:
                 betas=(self.cfg.adam_beta1, self.cfg.adam_beta2),
                 eps=self.cfg.adam_eps,
             )
-            log.info("load from checkpoint start")
             self.load_from_checkpoint(self.policy_id)
-            log.info("load from checkpoint done")
 
             self._broadcast_model_weights()  # sync the very first version of the weights
 
