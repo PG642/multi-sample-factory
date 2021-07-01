@@ -630,7 +630,7 @@ class LearnerWorker:
 
     def _prepare_observations(self, obs_tensors, gpu_buffer_obs):
         for d, gpu_d, k, v, _ in iter_dicts_recursively(obs_tensors, gpu_buffer_obs):
-            device, dtype = self.actor_critic.device_and_type_for_input_tensor(k)
+            device, dtype = self.actor_critic.module.device_and_type_for_input_tensor(k)
             tensor = v.detach().to(device, copy=True).type(dtype)
             gpu_d[k] = tensor
 
@@ -700,7 +700,7 @@ class LearnerWorker:
 
                 # calculate policy head outside of recurrent loop
                 with timing.add_time('forward_head'):
-                    head_outputs = self.actor_critic.forward_head(mb.obs)
+                    head_outputs = self.actor_critic.module.forward_head(mb.obs)
 
                 # initial rnn states
                 with timing.add_time('bptt_initial'):
@@ -715,10 +715,10 @@ class LearnerWorker:
                 with timing.add_time('bptt'):
                     if self.cfg.use_rnn:
                         with timing.add_time('bptt_forward_core'):
-                            core_output_seq, _ = self.actor_critic.forward_core(head_output_seq, rnn_states)
+                            core_output_seq, _ = self.actor_critic.module.forward_core(head_output_seq, rnn_states)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
                     else:
-                        core_outputs, _ = self.actor_critic.forward_core(head_outputs, rnn_states)
+                        core_outputs, _ = self.actor_critic.module.forward_core(head_outputs, rnn_states)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 
@@ -726,7 +726,7 @@ class LearnerWorker:
                     assert core_outputs.shape[0] == head_outputs.shape[0]
 
                     # calculate policy tail outside of recurrent loop
-                    result = self.actor_critic.forward_tail(core_outputs, with_action_distribution=True)
+                    result = self.actor_critic.module.forward_tail(core_outputs, with_action_distribution=True)
 
                     action_distribution = result.action_distribution
                     log_prob_actions = action_distribution.log_prob(mb.actions)
@@ -825,7 +825,7 @@ class LearnerWorker:
                 # update the weights
                 with timing.add_time('update'):
                     # following advice from https://youtu.be/9mS1fIYj1So set grad to None instead of optimizer.zero_grad()
-                    for p in self.actor_critic.parameters():
+                    for p in self.actor_critic.module.parameters():
                         p.grad = None
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
@@ -835,7 +835,7 @@ class LearnerWorker:
 
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
-                            torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.cfg.max_grad_norm)
+                            torch.nn.utils.clip_grad_norm_(self.actor_critic.module.parameters(), self.cfg.max_grad_norm)
                             if self.aux_loss_module is not None:
                                 torch.nn.utils.clip_grad_norm_(self.aux_loss_module.parameters(), self.cfg.max_grad_norm)
 
@@ -886,7 +886,7 @@ class LearnerWorker:
 
         grad_norm = sum(
             p.grad.data.norm(2).item() ** 2
-            for p in self.actor_critic.parameters()
+            for p in self.actor_critic.module.parameters()
             if p.grad is not None
         ) ** 0.5
         stats.grad_norm = grad_norm
@@ -918,7 +918,7 @@ class LearnerWorker:
 
             # calculate KL-divergence with the behaviour policy action distribution
             old_action_distribution = get_action_distribution(
-                self.actor_critic.action_space, var.mb.action_logits,
+                self.actor_critic.module.action_space, var.mb.action_logits,
             )
             kl_old = var.action_distribution.kl_divergence(old_action_distribution)
             kl_old_mean = kl_old.mean()
@@ -1003,7 +1003,7 @@ class LearnerWorker:
         host_list = os.getenv('MYHOSTLIST').split(",")
         master_addr = host_list[0].split("*", 1)[0]
         master_port = 29500
-        world_size = 2 #TODO: set dynamically
+        world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
         rank = int(os.environ['SLURM_PROCID'])
 
         store = torch.distributed.TCPStore (
@@ -1073,7 +1073,7 @@ class LearnerWorker:
             log.info("init model start")
             self.init_model(timing)
             log.info("init model done")
-            params = list(self.actor_critic.parameters())
+            params = list(self.actor_critic.module.parameters())
 
             if self.aux_loss_module is not None:
                 params += list(self.aux_loss_module.parameters())
