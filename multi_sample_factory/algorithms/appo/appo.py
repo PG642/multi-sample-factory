@@ -585,16 +585,16 @@ class APPO(ReinforcementLearningAlgorithm):
             log.debug('Avg episode reward: %r', policy_reward_stats)
 
     def report_train_summaries(self, stats, policy_id):
-        if(self.learner_workers[0].get_rank != 0):
-            return
+        #if(self.learner_workers[0].get_rank != 0):
+        #    return
         for key, scalar in stats.items():
             self.writers[policy_id].add_scalar(f'train/{key}', scalar, self.env_steps[policy_id])
             if 'version_diff' in key:
                 self.policy_lag[policy_id][key] = scalar
 
     def report_experiment_summaries(self, fps, sample_throughput):
-        if(self.learner_workers[0].get_rank != 0):
-            return
+        #if(self.learner_workers[0].get_rank != 0):
+        #    return
         memory_mb = memory_consumption_mb()
 
         default_policy = 0

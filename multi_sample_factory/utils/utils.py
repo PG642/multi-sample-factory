@@ -340,7 +340,7 @@ def project_tmp_dir():
 
 
 def experiments_dir(cfg):
-    return ensure_dir_exists(cfg.train_dir)
+    return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
 
 
 def experiment_dir(cfg):
