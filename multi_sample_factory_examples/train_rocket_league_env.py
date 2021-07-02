@@ -10,6 +10,7 @@ python -m multi_sample_factory_examples.enjoy_rocket_league_env --algo=APPO --ex
 import sys
 import fcntl
 import os
+import random
 
 
 import gym
@@ -39,16 +40,20 @@ def make_rocket_league_env_func(full_env_name, cfg=None, env_config=None):
     assert full_env_name.startswith('rocket_league_')
     rocket_league_env_name = full_env_name.split('rocket_league_')[1]
     
+    rand = random.SystemRandom().randint(-2147483648, 2147483647)
+    
     if env_config != None:
         unity_env = UnityEnvironment(file_name=full_env_name,
                                      side_channels=[],
-                                     worker_id=env_config.env_id)
+                                     worker_id=env_config.env_id,
+                                     seed=rand)
     
     #this is a temporary environment with no env_config
     else:
         unity_env = UnityEnvironment(file_name=full_env_name,
                                      side_channels=[],
-                                     worker_id=0)
+                                     worker_id=0,
+                                     seed=rand)
 
     env = UnityToGymWrapper(unity_env)
     return env
