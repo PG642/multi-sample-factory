@@ -698,10 +698,6 @@ class LearnerWorker:
                     # current minibatch consisting of short trajectory segments with length == recurrence
                     mb = self._get_minibatch(gpu_buffer, indices)
 
-                # calculate policy head outside of recurrent loop
-                with timing.add_time('forward_head'):
-                    head_outputs = self.actor_critic.module.forward_head(mb.obs)
-
                 # initial rnn states
                 with timing.add_time('bptt_initial'):
                     if self.cfg.use_rnn:
@@ -717,16 +713,13 @@ class LearnerWorker:
                         with timing.add_time('bptt_forward_core'):
                             core_output_seq, _ = self.actor_critic.module.forward_core(head_output_seq, rnn_states)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
-                    else:
-                        core_outputs, _ = self.actor_critic.module.forward_core(head_outputs, rnn_states)
+                
+                head_outputs, core_outputs, result = self.actor_critic(mb.obs, rnn_states, with_action_distribution=True)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 
                 with timing.add_time('tail'):
                     assert core_outputs.shape[0] == head_outputs.shape[0]
-
-                    # calculate policy tail outside of recurrent loop
-                    result = self.actor_critic.module.forward_tail(core_outputs, with_action_distribution=True)
 
                     action_distribution = result.action_distribution
                     log_prob_actions = action_distribution.log_prob(mb.actions)
@@ -825,7 +818,7 @@ class LearnerWorker:
                 # update the weights
                 with timing.add_time('update'):
                     # following advice from https://youtu.be/9mS1fIYj1So set grad to None instead of optimizer.zero_grad()
-                    for p in self.actor_critic.module.parameters():
+                    for p in self.actor_critic.parameters():
                         p.grad = None
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
@@ -835,7 +828,7 @@ class LearnerWorker:
 
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
-                            torch.nn.utils.clip_grad_norm_(self.actor_critic.module.parameters(), self.cfg.max_grad_norm)
+                            torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.cfg.max_grad_norm)
                             if self.aux_loss_module is not None:
                                 torch.nn.utils.clip_grad_norm_(self.aux_loss_module.parameters(), self.cfg.max_grad_norm)
 
@@ -886,7 +879,7 @@ class LearnerWorker:
 
         grad_norm = sum(
             p.grad.data.norm(2).item() ** 2
-            for p in self.actor_critic.module.parameters()
+            for p in self.actor_critic.parameters()
             if p.grad is not None
         ) ** 0.5
         stats.grad_norm = grad_norm
@@ -1068,7 +1061,7 @@ class LearnerWorker:
             else:
                 self.device = torch.device('cpu')
             self.init_model(timing)
-            params = list(self.actor_critic.module.parameters())
+            params = list(self.actor_critic.parameters())
 
             if self.aux_loss_module is not None:
                 params += list(self.aux_loss_module.parameters())
