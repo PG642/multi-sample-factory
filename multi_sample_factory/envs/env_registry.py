@@ -117,6 +117,11 @@ def minigrid_funcs():
     from multi_sample_factory.envs.minigrid.minigrid_params import minigrid_override_defaults
     return make_minigrid_env, None, minigrid_override_defaults
 
+def unity_funcs():
+    from multi_sample_factory.envs.unity.unity_utils import make_unity_env
+    from multi_sample_factory.envs.unity.unity_params import unity_override_defaults
+    from multi_sample_factory.envs.unity.unity_params import add_unity_env_args
+    return make_unity_env, add_unity_env_args, unity_override_defaults
 
 def register_default_envs(env_registry):
     """
@@ -132,6 +137,7 @@ def register_default_envs(env_registry):
         'dmlab_': dmlab_funcs,
         'mujoco_': mujoco_funcs,
         'MiniGrid': minigrid_funcs,
+        'unity_': unity_funcs
     }
 
     for envs_prefix, env_funcs in default_envs.items():
