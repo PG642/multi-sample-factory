@@ -6,7 +6,8 @@ def unity_override_defaults(env, parser):
         hidden_size=256,
         batch_size=512,
         with_vtrace=False,
-        use_rnn=False
+        use_rnn=False,
+        recurrence=1
     )
 
 # noinspection PyUnusedLocal
