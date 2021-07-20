@@ -2,6 +2,7 @@ from random import random
 from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
 from os.path import join
+import random
 
 
 class UnitySpec:
