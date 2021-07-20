@@ -7,11 +7,12 @@ def unity_override_defaults(env, parser):
         batch_size=512,
         with_vtrace=False,
         use_rnn=False,
-        recurrence=1
+        recurrence=1,
+        nonlinearity='relu'
     )
 
 # noinspection PyUnusedLocal
 def add_unity_env_args(env, parser):
     p = parser
     p.add_argument('--exec_dir', default='/work/grudelpg/executables', type=str,
-                   help='Path of the executables of the unity environments.')
+                   help='Path of the executables for the unity environments.')
