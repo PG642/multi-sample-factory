@@ -15,6 +15,7 @@ import psutil
 import torch
 from torch.nn.utils.rnn import PackedSequence, invert_permutation
 from torch.multiprocessing import Process, Event as MultiprocessingEvent
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
     from multi_sample_factory.utils import Queue as MpQueue
@@ -305,6 +306,7 @@ class LearnerWorker:
 
     def _broadcast_model_weights(self):
         state_dict = self.actor_critic.state_dict()
+        torch.nn.modules.utils.consume_prefix_in_state_dict_if_present(state_dict, "module.")
         policy_version = self.train_step
         log.debug('Broadcast model weights for model version %d', policy_version)
         model_state = (policy_version, state_dict)
@@ -559,6 +561,8 @@ class LearnerWorker:
         return checkpoint
 
     def _save(self):
+        #if(self.rank != 0):
+        #    return
         checkpoint = self._get_checkpoint_dict()
         assert checkpoint is not None
 
@@ -626,7 +630,7 @@ class LearnerWorker:
 
     def _prepare_observations(self, obs_tensors, gpu_buffer_obs):
         for d, gpu_d, k, v, _ in iter_dicts_recursively(obs_tensors, gpu_buffer_obs):
-            device, dtype = self.actor_critic.device_and_type_for_input_tensor(k)
+            device, dtype = self.actor_critic.module.device_and_type_for_input_tensor(k)
             tensor = v.detach().to(device, copy=True).type(dtype)
             gpu_d[k] = tensor
 
@@ -694,10 +698,6 @@ class LearnerWorker:
                     # current minibatch consisting of short trajectory segments with length == recurrence
                     mb = self._get_minibatch(gpu_buffer, indices)
 
-                # calculate policy head outside of recurrent loop
-                with timing.add_time('forward_head'):
-                    head_outputs = self.actor_critic.forward_head(mb.obs)
-
                 # initial rnn states
                 with timing.add_time('bptt_initial'):
                     if self.cfg.use_rnn:
@@ -711,18 +711,15 @@ class LearnerWorker:
                 with timing.add_time('bptt'):
                     if self.cfg.use_rnn:
                         with timing.add_time('bptt_forward_core'):
-                            core_output_seq, _ = self.actor_critic.forward_core(head_output_seq, rnn_states)
+                            core_output_seq, _ = self.actor_critic.module.forward_core(head_output_seq, rnn_states)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
-                    else:
-                        core_outputs, _ = self.actor_critic.forward_core(head_outputs, rnn_states)
+                
+                head_outputs, core_outputs, result = self.actor_critic(mb.obs, rnn_states, with_action_distribution=True)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 
                 with timing.add_time('tail'):
                     assert core_outputs.shape[0] == head_outputs.shape[0]
-
-                    # calculate policy tail outside of recurrent loop
-                    result = self.actor_critic.forward_tail(core_outputs, with_action_distribution=True)
 
                     action_distribution = result.action_distribution
                     log_prob_actions = action_distribution.log_prob(mb.actions)
@@ -914,7 +911,7 @@ class LearnerWorker:
 
             # calculate KL-divergence with the behaviour policy action distribution
             old_action_distribution = get_action_distribution(
-                self.actor_critic.action_space, var.mb.action_logits,
+                self.actor_critic.module.action_space, var.mb.action_logits,
             )
             kl_old = var.action_distribution.kl_divergence(old_action_distribution)
             kl_old_mean = kl_old.mean()
@@ -996,8 +993,32 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        self.actor_critic = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing)
-        self.actor_critic.model_to_device(self.device)
+        host_list = os.getenv('MYHOSTLIST').split(",")
+        master_addr = host_list[0].split("*", 1)[0]
+        master_port = 29500
+        world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+        rank = int(os.environ['SLURM_PROCID'])
+
+        store = torch.distributed.TCPStore (
+            master_addr,
+            master_port,
+            world_size,
+            rank == 0,
+        )
+
+        backend="gloo"
+
+        # processing group
+        torch.distributed.init_process_group (
+            backend = backend, # Message passing interface
+            world_size = world_size,
+            rank = rank,
+            store = store,
+        )
+        
+        model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing).to(0)
+        self.actor_critic = DDP(model)
+        #self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
         if self.cfg.use_cpc:
@@ -1031,7 +1052,6 @@ class LearnerWorker:
             # this does not help with a single experiment
             # but seems to do better when we're running more than one experiment in parallel
             torch.set_num_threads(1)
-
             if self.cfg.device == 'gpu':
                 torch.backends.cudnn.benchmark = True
 
@@ -1040,7 +1060,6 @@ class LearnerWorker:
                 self.device = torch.device('cuda', index=0)
             else:
                 self.device = torch.device('cpu')
-
             self.init_model(timing)
             params = list(self.actor_critic.parameters())
 
@@ -1053,7 +1072,6 @@ class LearnerWorker:
                 betas=(self.cfg.adam_beta1, self.cfg.adam_beta2),
                 eps=self.cfg.adam_eps,
             )
-
             self.load_from_checkpoint(self.policy_id)
 
             self._broadcast_model_weights()  # sync the very first version of the weights
@@ -1300,6 +1318,8 @@ class LearnerWorker:
         self.initialized_event.wait()
 
     def save_model(self, timeout=None):
+        #if(self.rank != 0):
+        #    return
         self.model_saved_event.clear()
         save_task = (PbtTask.SAVE_MODEL, self.policy_id)
         self.task_queue.put((TaskType.PBT, save_task))
@@ -1316,3 +1336,6 @@ class LearnerWorker:
 
     def join(self):
         join_or_kill(self.process)
+
+    def get_rank():
+        return int(os.environ['SLURM_PROCID'])

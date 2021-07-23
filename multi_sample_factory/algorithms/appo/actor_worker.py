@@ -356,7 +356,7 @@ class VectorEnvRunner:
             # log.info('Creating env %r... %d-%d-%d', env_config, self.worker_idx, self.split_idx, env_i)
             env = make_env_func(self.cfg, env_config=env_config)
 
-            env.seed(env_id)
+            env.seed(random.SystemRandom().randint(0, 2147483647))
             self.envs.append(env)
 
             actor_states_env, episode_rewards_env = [], []
