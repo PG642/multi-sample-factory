@@ -725,6 +725,9 @@ class LearnerWorker:
                 with timing.add_time('tail'):
                     assert core_outputs.shape[0] == head_outputs.shape[0]
 
+                    # calculate policy tail outside of recurrent loop
+                    result = self.actor_critic(tail = True, core_output = core_outputs, with_action_distribution=True)
+
                     action_distribution = result.action_distribution
                     log_prob_actions = action_distribution.log_prob(mb.actions)
                     ratio = torch.exp(log_prob_actions - mb.log_prob_actions)  # pi / pi_old
