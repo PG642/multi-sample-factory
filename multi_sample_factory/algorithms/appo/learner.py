@@ -714,7 +714,7 @@ class LearnerWorker:
                             core_output_seq, _ = self.actor_critic(head_output = head_output_seq, rnn_states = rnn_states, obs_dict = None)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
                 
-                head_outputs, core_outputs, result = self.actor_critic(mb.obs, rnn_states, with_action_distribution=True)
+                # head_outputs, core_outputs, result = self.actor_critic(mb.obs, rnn_states, with_action_distribution=True)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 
