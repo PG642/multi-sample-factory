@@ -700,7 +700,7 @@ class LearnerWorker:
 
                 # calculate policy head outside of recurrent loop
                 with timing.add_time('forward_head'):
-                    head_outputs = self.actor_critic(head = True, obs_dict = mb.obs, rnn_states = None)
+                    head_outputs = self.actor_critic(head = True, obs_dict = mb.obs)
 
                 # initial rnn states
                 with timing.add_time('bptt_initial'):
@@ -715,10 +715,10 @@ class LearnerWorker:
                 with timing.add_time('bptt'):
                     if self.cfg.use_rnn:
                         with timing.add_time('bptt_forward_core'):
-                            core_output_seq, _ = self.actor_critic(core = True, head_output = head_output_seq, rnn_states = rnn_states, obs_dict = None)
+                            core_output_seq, _ = self.actor_critic(core = True, head_output = head_output_seq, rnn_states = rnn_states)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
                     else:
-                        core_outputs, _ = self.actor_critic(core = True, head_output = head_outputs, rnn_states = rnn_states, obs_dict = None)
+                        core_outputs, _ = self.actor_critic(core = True, head_output = head_outputs, rnn_states = rnn_states)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 

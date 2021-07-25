@@ -106,7 +106,7 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
 
         return result
 
-    def forward(self, obs_dict, rnn_states, with_action_distribution=False, head_output = None, head = False, core = False):
+    def forward(self, obs_dict = None, rnn_states = None, with_action_distribution=False, head_output = None, head = False, core = False):
         if head:
             return self.forward_head(obs_dict)
         elif core:
