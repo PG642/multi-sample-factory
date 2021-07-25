@@ -206,12 +206,19 @@ class _ActorCriticSeparateWeights(_ActorCriticBase):
 
         return result
 
-    def forward(self, obs_dict, rnn_states, with_action_distribution=False):
-        x = self.forward_head(obs_dict)
-        x, new_rnn_states = self.forward_core(x, rnn_states)
-        result = self.forward_tail(x, with_action_distribution=with_action_distribution)
-        result.rnn_states = new_rnn_states
-        return result
+    def forward(self, obs_dict = None, rnn_states = None, with_action_distribution=False, head_output = None, core_output = None, head = False, core = False, tail = False):
+        if head:
+            return self.forward_head(obs_dict)
+        elif core:
+            return self.forward_core(head_output, rnn_states)
+        elif tail:
+            return self.forward_tail(core_output, with_action_distribution)
+        else:
+            x = self.forward_head(obs_dict)
+            x, new_rnn_states = self.forward_core(x, rnn_states)
+            result = self.forward_tail(x, with_action_distribution=with_action_distribution)
+            result.rnn_states = new_rnn_states
+            return result
 
 
 def create_actor_critic(cfg, obs_space, action_space, timing=None):
