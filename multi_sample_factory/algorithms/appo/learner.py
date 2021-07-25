@@ -698,6 +698,10 @@ class LearnerWorker:
                     # current minibatch consisting of short trajectory segments with length == recurrence
                     mb = self._get_minibatch(gpu_buffer, indices)
 
+                # calculate policy head outside of recurrent loop
+                with timing.add_time('forward_head'):
+                    head_outputs = self.actor_critic(head = True, obs_dict = mb.obs, rnn_states = None)
+
                 # initial rnn states
                 with timing.add_time('bptt_initial'):
                     if self.cfg.use_rnn:
@@ -711,10 +715,10 @@ class LearnerWorker:
                 with timing.add_time('bptt'):
                     if self.cfg.use_rnn:
                         with timing.add_time('bptt_forward_core'):
-                            core_output_seq, _ = self.actor_critic(head_output = head_output_seq, rnn_states = rnn_states, obs_dict = None)
+                            core_output_seq, _ = self.actor_critic(core = True, head_output = head_output_seq, rnn_states = rnn_states, obs_dict = None)
                         core_outputs = build_core_out_from_seq(core_output_seq, inverted_select_inds)
-                
-                # head_outputs, core_outputs, result = self.actor_critic(mb.obs, rnn_states, with_action_distribution=True)
+                    else:
+                        core_outputs, _ = self.actor_critic(core = True, head_output = head_outputs, rnn_states = rnn_states, obs_dict = None)
 
                 num_trajectories = head_outputs.size(0) // recurrence
 
