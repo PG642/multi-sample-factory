@@ -1073,7 +1073,7 @@ class LearnerWorker:
             if self.aux_loss_module is not None:
                 params += list(self.aux_loss_module.parameters())
 
-            self.optimizer = torch.optim.Adam(
+            self.optimizer = torch.optim.AdamW(
                 params,
                 self.cfg.learning_rate,
                 betas=(self.cfg.adam_beta1, self.cfg.adam_beta2),
