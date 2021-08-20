@@ -14,6 +14,7 @@ import random
 
 
 import gym
+import torch
 
 from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
 from multi_sample_factory.envs.env_registry import global_env_registry
@@ -80,6 +81,7 @@ def register_custom_components():
 
 def main():
     """Script entry point."""
+    torch.autograd.set_detect_anomaly(True)
     register_custom_components()
     cfg = custom_parse_args()
     status = run_algorithm(cfg)
