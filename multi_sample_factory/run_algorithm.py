@@ -1,9 +1,13 @@
 import sys
 
+import torch
+
 from multi_sample_factory.algorithms.utils.arguments import maybe_load_from_checkpoint, get_algo_class, parse_args
 
 
 def run_algorithm(cfg):
+    if cfg.detect_anomaly:
+        torch.autograd.set_detect_anomaly(True)
     cfg = maybe_load_from_checkpoint(cfg)
 
     algo = get_algo_class(cfg.algo)(cfg)

@@ -78,5 +78,8 @@ class ReinforcementLearningAlgorithm(AlgorithmBase, ABC):
         p.add_argument('--adaptive_stddev', default=True, type=str2bool, help='Only for continuous action distributions, whether stddev is state-dependent or just a single learned parameter')
         p.add_argument('--initial_stddev', default=1.0, type=float, help='Initial value for non-adaptive stddev. Only makes sense for continuous action spaces')
 
+        p.add_argument('--detect_anomaly', default=False, type=str2bool, help='Sets the anomaly detection for the '
+                                                                              'autograd engine on or off.')
+
     def __init__(self, cfg):
         super().__init__(cfg)
