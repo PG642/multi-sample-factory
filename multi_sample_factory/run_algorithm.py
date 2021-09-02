@@ -7,7 +7,9 @@ from multi_sample_factory.utils.utils import log
 
 def run_algorithm(cfg):
     if cfg.detect_anomaly:
-        log.warning('Anomaly detection is activated. This mode should be enabled only for debugging as the different tests will slow down your program execution.')
+        log.warning('Anomaly detection is activated. '
+                    'This mode should be enabled only for debugging as the different tests will '
+                    'slow down your program execution.')
         torch.autograd.set_detect_anomaly(True)
     cfg = maybe_load_from_checkpoint(cfg)
 
