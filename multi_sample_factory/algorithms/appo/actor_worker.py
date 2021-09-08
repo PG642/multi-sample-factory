@@ -168,6 +168,7 @@ class ActorState:
 
         if len(actions) == 1:
             actions = actions.item()
+
         return actions
 
     def record_env_step(self, reward, done, info, rollout_step):
@@ -616,6 +617,8 @@ class VectorEnvRunner:
         for env_i, e in enumerate(self.envs):
             with timing.add_time('env_step'):
                 actions = [s.curr_actions() for s in self.actor_states[env_i]]
+                # TODO Remove this debug logging when the problem is fixed
+                log.debug(actions)
                 new_obs, rewards, dones, infos = e.step(actions)
 
             with timing.add_time('overhead'):
