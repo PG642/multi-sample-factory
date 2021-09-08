@@ -440,6 +440,9 @@ class VectorEnvRunner:
         return all_actors_ready
 
     def _clamp_and_scale(self, action):
+        """
+        Clamps and scales the action properly to the expected action space defined by the environment if set.
+        """
         if self.cfg.scale_action is not None:
             low, high = torch.FloatTensor(self.action_space.low), torch.FloatTensor(self.action_space.high)
             action, scale = torch.FloatTensor(action), self.cfg.scale_action
@@ -450,8 +453,6 @@ class VectorEnvRunner:
         if self.cfg.tanh_action:
             action = torch.FloatTensor(action)
             return torch.nn.functional.tanh(action)
-        
-
 
     def _process_rewards(self, rewards, env_i):
         """
