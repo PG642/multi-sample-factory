@@ -452,7 +452,7 @@ class VectorEnvRunner:
             return torch.clamp(scaled_action, min = low, max = high).cpu().numpy()
         if self.cfg.tanh_action:
             action = torch.FloatTensor(action)
-            return torch.nn.functional.tanh(action)
+            return torch.nn.functional.tanh(action).cpu().numpy()
 
     def _process_rewards(self, rewards, env_i):
         """
