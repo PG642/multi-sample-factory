@@ -443,6 +443,8 @@ class VectorEnvRunner:
         """
         Clamps and scales the action properly to the expected action space defined by the environment if set.
         """
+        print("type of action:", type(action))
+        print("action: \n", action)
         if self.cfg.scale_action is not None:
             low, high = torch.FloatTensor(self.action_space.low), torch.FloatTensor(self.action_space.high)
             action, scale = torch.FloatTensor(action), self.cfg.scale_action
