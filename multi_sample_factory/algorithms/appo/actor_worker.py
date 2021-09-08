@@ -371,6 +371,8 @@ class VectorEnvRunner:
 
             self.actor_states.append(actor_states_env)
             self.episode_rewards.append(episode_rewards_env)
+        
+        self.action_space = self.envs[0].action_space
 
     def update_env_steps(self, env_steps):
         for env_i in range(self.num_envs):
@@ -420,6 +422,8 @@ class VectorEnvRunner:
                         else:
                             policy_outputs_dict[name] = policy_outputs[tensor_idx]
 
+
+                    policy_outputs_dict['actions'] = self._clamp_and_scale(policy_outputs_dict['actions'])
                     # save parsed trajectory outputs directly into the trajectory buffer
                     actor_state.set_trajectory_data(policy_outputs_dict, self.rollout_step)
                     actor_state.last_actions = policy_outputs_dict['actions']
@@ -434,6 +438,20 @@ class VectorEnvRunner:
         # Potential optimization: when actions are ready for all actors within one environment we can execute
         # a simulation step right away, without waiting for all other actions to be calculated.
         return all_actors_ready
+
+    def _clamp_and_scale(self, action):
+        if self.cfg.scale_action is not None:
+            low, high = torch.FloatTensor(self.action_space.low), torch.FloatTensor(self.action_space.high)
+            action, scale = torch.FloatTensor(action), self.cfg.scale_action
+
+            scaled_action = action * scale
+
+            return torch.clamp(scaled_action, min = low, max = high).cpu().numpy()
+        if self.cfg.tanh_action:
+            action = torch.FloatTensor(action)
+            return torch.nn.functional.tanh(action)
+        
+
 
     def _process_rewards(self, rewards, env_i):
         """
