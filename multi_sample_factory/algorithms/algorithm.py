@@ -71,8 +71,7 @@ class ReinforcementLearningAlgorithm(AlgorithmBase, ABC):
         p.add_argument('--policy_initialization', default='orthogonal', choices=['orthogonal', 'xavier_uniform'], type=str, help='NN weight initialization')
         p.add_argument('--policy_init_gain', default=1.0, type=float, help='Gain parameter of PyTorch initialization schemas (i.e. Xavier)')
         p.add_argument('--actor_critic_share_weights', default=True, type=str2bool, help='Whether to share the weights between policy and value function')
-        p.add_argument('--scale_action', default=None, type=float, help='Scales and clamps the action if set to the Box constraints(Currently it works only with continuous actions spaces)')
-        p.add_argument('--tanh_action', default=False, type=bool, help='tanh action')
+        p.add_argument('--clamp_action', default=False, type=bool, help='Clamps the action in continuous actions spaces between -1 and 1')
 
 
         # TODO: Right now this only applies to custom encoders. Make sure generic policies also factor in this arg

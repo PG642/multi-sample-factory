@@ -728,7 +728,6 @@ class LearnerWorker:
                     # calculate policy tail outside of recurrent loop
                     result = self.actor_critic(tail = True, core_output = core_outputs, with_action_distribution=True)
 
-                    print(mb.actions)
                     action_distribution = result.action_distribution
                     log_prob_actions = action_distribution.log_prob(mb.actions)
                     ratio = torch.exp(log_prob_actions - mb.log_prob_actions)  # pi / pi_old

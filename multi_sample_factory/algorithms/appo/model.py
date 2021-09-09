@@ -93,6 +93,8 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
 
         # for non-trivial action spaces it is faster to do these together
         actions, log_prob_actions = sample_actions_log_probs(action_distribution)
+        # clamp actions between -1 and 1 if set
+        actions = torch.clamp(actions, min=-3, max=3) / 3 if self.cfg.clamp_action else actions
 
         result = AttrDict(dict(
             actions=actions,
@@ -190,6 +192,8 @@ class _ActorCriticSeparateWeights(_ActorCriticBase):
         action_distribution_params, action_distribution = self.action_parameterization(core_outputs[0])
         # for non-trivial action spaces it is faster to do these together
         actions, log_prob_actions = sample_actions_log_probs(action_distribution)
+        # clamp actions between -1 and 1 if set
+        actions = torch.clamp(actions, min=-3, max=3) / 3 if self.cfg.clamp_action else actions
 
         # second core output corresponds to the critic
         values = self.critic_linear(core_outputs[1])
