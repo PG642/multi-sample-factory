@@ -10,7 +10,9 @@ def unity_override_defaults(env, parser):
         recurrence=1,
         nonlinearity='relu',
         learning_rate=0.0003, # based on experiments with ml-agents
-        gae_lambda=0.99 # based on experiments with ml-agents
+        gae_lambda=0.99, # based on experiments with ml-agents
+        ppo_clip_ratio=0.2, # based on experiments with ml-agents, note, that clipping works slighty differently in ml-agents
+        exploration_loss_coeff=0.001 # based on experiments with ml-agents
     )
 
 # noinspection PyUnusedLocal
