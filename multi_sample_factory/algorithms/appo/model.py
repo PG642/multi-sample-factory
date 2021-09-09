@@ -94,7 +94,7 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
         # for non-trivial action spaces it is faster to do these together
         actions, log_prob_actions = sample_actions_log_probs(action_distribution)
         # TODO Remove this debug logging after iss14 is fixed
-        log.debug("Sampled Actions: " + actions)
+        log.debug(actions)
         result = AttrDict(dict(
             actions=actions,
             action_logits=action_distribution_params,  # perhaps `action_logits` is not the best name here since we now support continuous actions
