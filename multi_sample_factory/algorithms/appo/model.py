@@ -113,6 +113,8 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
         core = x
         result = self.forward_tail(x, with_action_distribution=with_action_distribution)
         result.rnn_states = new_rnn_states
+        # TODO Remove this debug logging after iss14 is fixed
+        log.debug("Forward pass results: " + result)
         return head, core, result
 
 
