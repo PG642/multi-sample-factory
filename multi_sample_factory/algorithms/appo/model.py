@@ -6,7 +6,7 @@ from multi_sample_factory.algorithms.appo.model_utils import create_encoder, cre
     ActionParameterizationDefault, normalize_obs
 from multi_sample_factory.algorithms.utils.action_distributions import sample_actions_log_probs, is_continuous_action_space
 from multi_sample_factory.utils.timing import Timing
-from multi_sample_factory.utils.utils import AttrDict
+from multi_sample_factory.utils.utils import AttrDict, log
 
 
 class _ActorCriticBase(nn.Module):
@@ -93,7 +93,8 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
 
         # for non-trivial action spaces it is faster to do these together
         actions, log_prob_actions = sample_actions_log_probs(action_distribution)
-
+        # TODO Remove this debug logging after iss14 is fixed
+        log.debug("Sampled Actions: " + actions)
         result = AttrDict(dict(
             actions=actions,
             action_logits=action_distribution_params,  # perhaps `action_logits` is not the best name here since we now support continuous actions
@@ -113,8 +114,6 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
         core = x
         result = self.forward_tail(x, with_action_distribution=with_action_distribution)
         result.rnn_states = new_rnn_states
-        # TODO Remove this debug logging after iss14 is fixed
-        log.debug("Forward pass results: " + result)
         return head, core, result
 
 
