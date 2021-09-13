@@ -93,7 +93,6 @@ class _ActorCriticSharedWeights(_ActorCriticBase):
 
         # for non-trivial action spaces it is faster to do these together
         actions, log_prob_actions = sample_actions_log_probs(action_distribution)
-        actions = torch.clamp(actions, min=-3, max=3) / 3
         result = AttrDict(dict(
             actions=actions,
             action_logits=action_distribution_params,  # perhaps `action_logits` is not the best name here since we now support continuous actions
