@@ -282,13 +282,13 @@ class ContinuousActionDistribution(Independent):
 # https://github.com/Unity-Technologies/ml-agents/blob/7603fb77092bb128433abd1bf9a0713a90936b94/ml-agents/mlagents/trainers/torch/distributions.py
 
 class GaussianDistInstance(Distribution):
-    def __init__(self, mean, std):
+    def __init__(self, mu, std):
         super().__init__()
-        self.mean = mean
+        self.mu = mu
         self.std = std
 
     def sample(self):
-        sample = self.mean + torch.randn_like(self.mean) * self.std
+        sample = self.mu  + torch.randn_like(self.mu ) * self.std
         return sample
 
     def log_prob(self, value):
@@ -297,7 +297,7 @@ class GaussianDistInstance(Distribution):
         var = self.std ** 2
         log_scale = torch.log(self.std + EPSILON)
         return (
-            -((value - self.mean) ** 2) / (2 * var + EPSILON)
+            -((value - self.mu ) ** 2) / (2 * var + EPSILON)
             - log_scale
             - math.log(math.sqrt(2 * math.pi))
         )
