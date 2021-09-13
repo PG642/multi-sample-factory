@@ -57,8 +57,7 @@ def get_action_distribution(action_space, raw_logits):
     elif isinstance(action_space, gym.spaces.Tuple):
         return TupleActionDistribution(action_space, logits_flat=raw_logits)
     elif isinstance(action_space, gym.spaces.Box):
-        return TanhGaussianDistInstance(params=raw_logits)
-        # return ContinuousActionDistribution(params=raw_logits)
+        return ContinuousActionDistribution(params=raw_logits)
     else:
         raise NotImplementedError(f'Action space type {type(action_space)} not supported!')
 
@@ -255,8 +254,10 @@ class ContinuousActionDistribution(Independent):
         self.stddevs = self.log_std.exp()
         self.stddevs = torch.clamp(self.stddevs, self.stddev_min, self.stddev_max)
 
-        normal_dist = Normal(self.means, self.stddevs)
-        super().__init__(normal_dist, 1)
+        # normal_dist = Normal(self.means, self.stddevs)
+        tanh_dist = TanhGaussianDistInstance(self.means, self.stddevs)
+
+        super().__init__(tanh_dist, 1)
 
     def kl_divergence(self, other):
         kl = torch.distributions.kl.kl_divergence(self, other)
@@ -349,13 +350,8 @@ class GaussianDistInstance(DistInstance):
         return self.sample()
 
 class TanhGaussianDistInstance(GaussianDistInstance):
-    def __init__(self, params):
-        # using torch.chunk here is slightly faster than plain indexing
-        self.means, self.log_std = torch.chunk(params, 2, dim=1)
-
-        self.stddevs = self.log_std.exp()
-
-        super().__init__(self.means, self.stddevs)
+    def __init__(self, mean, std):
+        super().__init__(mean, std)
         self.transform = torch.distributions.transforms.TanhTransform(cache_size=1)
 
     def sample(self):
@@ -373,23 +369,4 @@ class TanhGaussianDistInstance(GaussianDistInstance):
         unsquashed = self.transform.inv(value)
         return super().log_prob(unsquashed) - self.transform.log_abs_det_jacobian(
             unsquashed, value
-        )
-
-    def kl_divergence(self, other):
-        kl = torch.distributions.kl.kl_divergence(self, other)
-        return kl
-
-    def summaries(self):
-        return dict(
-            action_mean=self.means.mean(),
-            action_mean_min=self.means.min(),
-            action_mean_max=self.means.max(),
-
-            action_log_std_mean=self.log_std.mean(),
-            action_log_std_min=self.log_std.min(),
-            action_log_std_max=self.log_std.max(),
-
-            action_stddev_mean=self.stddev.mean(),
-            action_stddev_min=self.stddev.min(),
-            action_stddev_max=self.stddev.max(),
         )
