@@ -5,6 +5,9 @@ import numpy as np
 import torch
 from torch.distributions import Normal, Independent
 import torch.nn.functional as F
+from torch import nn
+
+import abc
 
 from multi_sample_factory.utils.utils import log
 
@@ -54,7 +57,8 @@ def get_action_distribution(action_space, raw_logits):
     elif isinstance(action_space, gym.spaces.Tuple):
         return TupleActionDistribution(action_space, logits_flat=raw_logits)
     elif isinstance(action_space, gym.spaces.Box):
-        return ContinuousActionDistribution(params=raw_logits)
+        return TanhGaussianDistInstance(params=raw_logits)
+        # return ContinuousActionDistribution(params=raw_logits)
     else:
         raise NotImplementedError(f'Action space type {type(action_space)} not supported!')
 
@@ -253,6 +257,123 @@ class ContinuousActionDistribution(Independent):
 
         normal_dist = Normal(self.means, self.stddevs)
         super().__init__(normal_dist, 1)
+
+    def kl_divergence(self, other):
+        kl = torch.distributions.kl.kl_divergence(self, other)
+        return kl
+
+    def summaries(self):
+        return dict(
+            action_mean=self.means.mean(),
+            action_mean_min=self.means.min(),
+            action_mean_max=self.means.max(),
+
+            action_log_std_mean=self.log_std.mean(),
+            action_log_std_min=self.log_std.min(),
+            action_log_std_max=self.log_std.max(),
+
+            action_stddev_mean=self.stddev.mean(),
+            action_stddev_min=self.stddev.min(),
+            action_stddev_max=self.stddev.max(),
+        )
+
+
+# https://github.com/Unity-Technologies/ml-agents/blob/7603fb77092bb128433abd1bf9a0713a90936b94/ml-agents/mlagents/trainers/torch/distributions.py
+
+class DistInstance(nn.Module, abc.ABC):
+    @abc.abstractmethod
+    def sample(self) -> torch.Tensor:
+        """
+        Return a sample from this distribution.
+        """
+        pass
+
+    @abc.abstractmethod
+    def log_prob(self, value: torch.Tensor) -> torch.Tensor:
+        """
+        Returns the log probabilities of a particular value.
+        :param value: A value sampled from the distribution.
+        :returns: Log probabilities of the given value.
+        """
+        pass
+
+    @abc.abstractmethod
+    def entropy(self) -> torch.Tensor:
+        """
+        Returns the entropy of this distribution.
+        """
+        pass
+
+    @abc.abstractmethod
+    def exported_model_output(self) -> torch.Tensor:
+        """
+        Returns the tensor to be exported to ONNX for the distribution
+        """
+        pass
+
+class GaussianDistInstance(DistInstance):
+    def __init__(self, mean, std):
+        super().__init__()
+        self.mean = mean
+        self.std = std
+
+    def sample(self):
+        sample = self.mean + torch.randn_like(self.mean) * self.std
+        return sample
+
+    def log_prob(self, value):
+        EPSILON = 1e-7  # Small value to avoid divide by zero
+
+        var = self.std ** 2
+        log_scale = torch.log(self.std + EPSILON)
+        return (
+            -((value - self.mean) ** 2) / (2 * var + EPSILON)
+            - log_scale
+            - math.log(math.sqrt(2 * math.pi))
+        )
+
+    def pdf(self, value):
+        log_prob = self.log_prob(value)
+        return torch.exp(log_prob)
+
+    def entropy(self):
+        EPSILON = 1e-7  # Small value to avoid divide by zero
+
+        return torch.mean(
+            0.5 * torch.log(2 * math.pi * math.e * self.std ** 2 + EPSILON),
+            dim=1,
+            keepdim=True,
+        )  # Use equivalent behavior to TF
+
+    def exported_model_output(self):
+        return self.sample()
+
+class TanhGaussianDistInstance(GaussianDistInstance):
+    def __init__(self, params):
+        # using torch.chunk here is slightly faster than plain indexing
+        self.means, self.log_std = torch.chunk(params, 2, dim=1)
+
+        self.stddevs = self.log_std.exp()
+
+        super().__init__(self.means, self.stddevs)
+        self.transform = torch.distributions.transforms.TanhTransform(cache_size=1)
+
+    def sample(self):
+        unsquashed_sample = super().sample()
+        squashed = self.transform(unsquashed_sample)
+        return squashed
+
+    def _inverse_tanh(self, value):
+        EPSILON = 1e-7  # Small value to avoid divide by zero
+
+        capped_value = torch.clamp(value, -1 + EPSILON, 1 - EPSILON)
+        return 0.5 * torch.log((1 + capped_value) / (1 - capped_value) + EPSILON)
+
+    def log_prob(self, value):
+        unsquashed = self.transform.inv(value)
+        return super().log_prob(unsquashed) - self.transform.log_abs_det_jacobian(
+            unsquashed, value
+        )
 
     def kl_divergence(self, other):
         kl = torch.distributions.kl.kl_divergence(self, other)
