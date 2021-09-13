@@ -3,7 +3,7 @@ import math
 import gym
 import numpy as np
 import torch
-from torch.distributions import Normal, Independent
+from torch.distributions import Normal, Independent, Distribution
 import torch.nn.functional as F
 from torch import nn
 
@@ -281,38 +281,7 @@ class ContinuousActionDistribution(Independent):
 
 # https://github.com/Unity-Technologies/ml-agents/blob/7603fb77092bb128433abd1bf9a0713a90936b94/ml-agents/mlagents/trainers/torch/distributions.py
 
-class DistInstance(nn.Module, abc.ABC):
-    @abc.abstractmethod
-    def sample(self) -> torch.Tensor:
-        """
-        Return a sample from this distribution.
-        """
-        pass
-
-    @abc.abstractmethod
-    def log_prob(self, value: torch.Tensor) -> torch.Tensor:
-        """
-        Returns the log probabilities of a particular value.
-        :param value: A value sampled from the distribution.
-        :returns: Log probabilities of the given value.
-        """
-        pass
-
-    @abc.abstractmethod
-    def entropy(self) -> torch.Tensor:
-        """
-        Returns the entropy of this distribution.
-        """
-        pass
-
-    @abc.abstractmethod
-    def exported_model_output(self) -> torch.Tensor:
-        """
-        Returns the tensor to be exported to ONNX for the distribution
-        """
-        pass
-
-class GaussianDistInstance(DistInstance):
+class GaussianDistInstance(Distribution):
     def __init__(self, mean, std):
         super().__init__()
         self.mean = mean
