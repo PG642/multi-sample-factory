@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.distributions import Normal, Independent
 import torch.nn.functional as F
-from multi_sample_factory.algorithms.utils.distributions import TruncatedNormal
+from multi_sample_factory.algorithms.utils.distributions import TanhNormal
 
 from multi_sample_factory.utils.utils import log
 
@@ -55,7 +55,7 @@ def get_action_distribution(action_space, raw_logits):
     elif isinstance(action_space, gym.spaces.Tuple):
         return TupleActionDistribution(action_space, logits_flat=raw_logits)
     elif isinstance(action_space, gym.spaces.Box):
-        return ContinuousActionDistribution(params=raw_logits, low=action_space.low, high=action_space.high)
+        return ContinuousActionDistribution(params=raw_logits)
     else:
         raise NotImplementedError(f'Action space type {type(action_space)} not supported!')
 
@@ -245,15 +245,15 @@ class ContinuousActionDistribution(Independent):
     stddev_max = 1e5
     stddev_span = stddev_max - stddev_min
 
-    def __init__(self, params, low, high):
+    def __init__(self, params):
         # using torch.chunk here is slightly faster than plain indexing
         self.means, self.log_std = torch.chunk(params, 2, dim=1)
 
         self.stddevs = self.log_std.exp()
         self.stddevs = torch.clamp(self.stddevs, self.stddev_min, self.stddev_max)
 
-        truncated_normal_dist = TruncatedNormal(self.means, self.stddevs, low, high)
-        super().__init__(truncated_normal_dist, 1)
+        normal_dist = TanhNormal(self.means, self.stddevs)
+        super().__init__(normal_dist, 1)
 
     def kl_divergence(self, other):
         kl = torch.distributions.kl.kl_divergence(self, other)
