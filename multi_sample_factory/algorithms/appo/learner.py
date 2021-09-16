@@ -822,9 +822,16 @@ class LearnerWorker:
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
                             p.grad = None
-
-                    loss.backward()
-
+                    try:
+                        loss.backward()
+                    except RuntimeError:
+                        #TODO Remove this try-except block, after finding the cauuse of the nan values in the backward pass of Exp.Backwward
+                        log.debug('ratio:')
+                        log.debug(ratio)
+                        log.debug('log probs:')
+                        log.debug(log_prob_actions)
+                        log.debug('mini batch log probs')
+                        log.debug(mb.log_prob_actions)
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
                             torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.cfg.max_grad_norm)
