@@ -25,6 +25,19 @@ class TanhNormal(torch.distributions.Normal, ABC):
 
     def log_prob(self, value):
         unsquashed = self.transform.inv(value)
-        return super().log_prob(unsquashed) - self.transform.log_abs_det_jacobian(
+        return self.log_prob_of_normal_with_epsilon(unsquashed) - self.transform.log_abs_det_jacobian(
             unsquashed, value
+        )
+
+    def log_prob_of_normal_with_epsilon(self, value):
+        """
+        Log probability of the underlying normal distribution with epsilon to prevent nans.
+        """
+        EPSILON = 1e-7  # Small value to avoid divide by zero
+        var = self.scale ** 2
+        log_scale = torch.log(self.scale + EPSILON)
+        return (
+            -((value - self.loc) ** 2) / (2 * var + EPSILON)
+            - log_scale
+            - math.log(math.sqrt(2 * math.pi))
         )
