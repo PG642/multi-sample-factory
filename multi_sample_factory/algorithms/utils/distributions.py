@@ -12,8 +12,8 @@ class TanhNormal(torch.distributions.Normal, ABC):
         super().__init__(loc, scale)
         self.transform = torch.distributions.transforms.TanhTransform(cache_size=1)
 
-    def sample(self):
-        unsquashed_sample = super().sample()
+    def sample(self, sample_shape=torch.Size([])):
+        unsquashed_sample = super().sample(sample_shape)
         squashed = self.transform(unsquashed_sample)
         return squashed
 
