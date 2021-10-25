@@ -71,14 +71,15 @@ class ReinforcementLearningAlgorithm(AlgorithmBase, ABC):
         p.add_argument('--policy_initialization', default='orthogonal', choices=['orthogonal', 'xavier_uniform'], type=str, help='NN weight initialization')
         p.add_argument('--policy_init_gain', default=1.0, type=float, help='Gain parameter of PyTorch initialization schemas (i.e. Xavier)')
         p.add_argument('--actor_critic_share_weights', default=True, type=str2bool, help='Whether to share the weights between policy and value function')
-        p.add_argument('--clamp_action', default=False, type=bool, help='Clamps the action in continuous actions spaces between -1 and 1')
-
 
         # TODO: Right now this only applies to custom encoders. Make sure generic policies also factor in this arg
         p.add_argument('--use_spectral_norm', default=False, type=str2bool, help='Use spectral normalization to smoothen the gradients and stabilize training. Only supports fully connected layers')
 
         p.add_argument('--adaptive_stddev', default=True, type=str2bool, help='Only for continuous action distributions, whether stddev is state-dependent or just a single learned parameter')
         p.add_argument('--initial_stddev', default=1.0, type=float, help='Initial value for non-adaptive stddev. Only makes sense for continuous action spaces')
+
+        p.add_argument('--detect_anomaly', default=False, type=str2bool, help='Sets the anomaly detection for the '
+                                                                              'autograd engine on or off.')
 
     def __init__(self, cfg):
         super().__init__(cfg)
