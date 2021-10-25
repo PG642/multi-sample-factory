@@ -420,6 +420,7 @@ class VectorEnvRunner:
                         else:
                             policy_outputs_dict[name] = policy_outputs[tensor_idx]
 
+
                     # save parsed trajectory outputs directly into the trajectory buffer
                     actor_state.set_trajectory_data(policy_outputs_dict, self.rollout_step)
                     actor_state.last_actions = policy_outputs_dict['actions']

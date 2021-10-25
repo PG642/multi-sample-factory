@@ -13,8 +13,7 @@ class UnitySpec:
 
 UNITY_ENVS = [
     UnitySpec('unity_rocket_league_saving_training_single', 'rocket_league_saving_training_single'),
-    UnitySpec('unity_rocket_league_saving_training_single_v2', 'rocket_league_saving_training_single_v2'),
-    UnitySpec('unity_rocket_league_saving_training_single_v3', 'rocket_league_saving_training_single_v3')
+    UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete')
     # You can add more unity environments here if needed.
 ]
 

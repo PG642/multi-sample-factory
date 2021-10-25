@@ -1,10 +1,15 @@
 import math
+from abc import ABC
+from numbers import Number
 
 import gym
 import numpy as np
 import torch
+
 from torch.distributions import Normal, Independent
 import torch.nn.functional as F
+from torch.distributions import Distribution, constraints
+from torch.distributions.utils import broadcast_all
 
 from multi_sample_factory.utils.utils import log
 
@@ -158,13 +163,10 @@ class TupleActionDistribution:
      - selecting a weapon
      - jumping
      - strafing
-
     Empirically, it seems to be better to represent such an action distribution as a tuple of independent action
     distributions, rather than a one-hot over potentially big cartesian product of all action spaces, like it's
     usually done in Atari.
-
     Entropy of such a distribution is just a sum of entropies of individual distributions.
-
     """
     def __init__(self, action_space, logits_flat):
         self.logit_lengths = [calc_num_logits(s) for s in action_space.spaces]
@@ -251,7 +253,7 @@ class ContinuousActionDistribution(Independent):
         self.stddevs = self.log_std.exp()
         self.stddevs = torch.clamp(self.stddevs, self.stddev_min, self.stddev_max)
 
-        normal_dist = Normal(self.means, self.stddevs)
+        normal_dist = TanhNormal(self.means, self.stddevs)
         super().__init__(normal_dist, 1)
 
     def kl_divergence(self, other):
@@ -271,4 +273,35 @@ class ContinuousActionDistribution(Independent):
             action_stddev_mean=self.stddev.mean(),
             action_stddev_min=self.stddev.min(),
             action_stddev_max=self.stddev.max(),
+        )
+
+class TanhNormal(torch.distributions.Normal, ABC):
+    def __init__(self, loc, scale):
+        super().__init__(loc, scale)
+        self.transform = torch.distributions.transforms.TanhTransform(cache_size=1)
+
+    def sample(self, sample_shape=torch.Size([])):
+        unsquashed_sample = super().sample(sample_shape)
+        squashed = self.transform(unsquashed_sample)
+        return squashed
+
+    def log_prob(self, value):
+        EPSILON = 1e-5  # Small value to avoid divide by zero
+        capped_value = torch.clamp(value, -1 + EPSILON, 1 - EPSILON)
+        unsquashed = self.transform.inv(capped_value)
+        log_prob_of_normal_with_epsilon = self.log_prob_of_normal_with_epsilon(unsquashed)
+        log_abs_det_jacobian = self.transform.log_abs_det_jacobian(unsquashed, capped_value)
+        return log_prob_of_normal_with_epsilon - log_abs_det_jacobian
+
+    def log_prob_of_normal_with_epsilon(self, value):
+        """
+        Log probability of the underlying normal distribution with epsilon to prevent nans.
+        """
+        EPSILON = 1e-7  # Small value to avoid divide by zero
+        var = self.scale ** 2
+        log_scale = torch.log(self.scale + EPSILON)
+        return (
+                -((value - self.loc) ** 2) / (2 * var + EPSILON)
+                - log_scale
+                - math.log(math.sqrt(2 * math.pi))
         )
