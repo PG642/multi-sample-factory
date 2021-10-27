@@ -5,10 +5,11 @@ from unittest import TestCase
 import gym
 import numpy as np
 import torch
+from gym.spaces import MultiDiscrete, Discrete, Tuple,Box, MultiBinary
 from torch.distributions import Categorical
 
 from multi_sample_factory.algorithms.utils.action_distributions import get_action_distribution, calc_num_logits, \
-    sample_actions_log_probs
+    sample_actions_log_probs, transform_action_space
 from multi_sample_factory.utils.timing import Timing
 from multi_sample_factory.utils.utils import log
 
@@ -156,3 +157,31 @@ class TestActionDistributions(TestCase):
                 log_prob = tuple_distr.log_prob(action)
                 probability = torch.exp(log_prob)[0].item()
                 self.assertAlmostEqual(probability, expected_probs[a1] * expected_probs[a2], delta=1e-6)
+
+    def test_calc_num_actions(self):
+        # Test with discrete action space
+        action_space = Discrete(2)
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 2)
+
+        # Test with tuple action space
+        action_space = Tuple((Discrete(2), Discrete(3)))
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 5)
+
+        # Test with box action space in R^1
+        action_space = Box(low=-1.0, high=2.0, shape=(3,), dtype=np.float64)
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 6)
+
+        # Test with box action space in R^2
+        action_space = Box(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float64)
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 24)
+
+        # Test with multi discrete action space
+        action_space= MultiDiscrete([5, 5, 5, 2])
+        action_space = transform_action_space(action_space)
+        self.assertIsInstance(action_space, Tuple)
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 17)

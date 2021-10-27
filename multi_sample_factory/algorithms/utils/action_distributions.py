@@ -41,6 +41,29 @@ def calc_num_logits(action_space):
         raise NotImplementedError(f'Action space type {type(action_space)} not supported!')
 
 
+def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
+    """Transforms a multi discrete action space to an equivalent tuple action space with discrete sub spaces.
+
+    Parameters
+    ----------
+    action_space : gym.spaces.space
+        The action space to transform.
+
+    Returns
+    -------
+    gym.spaces.space
+        A tuple action space, if the action was multi discrete. Otherwise the original action space.
+    """
+    if isinstance(action_space, gym.spaces.MultiDiscrete):
+        sub_spaces = []
+        for branch_size in action_space.nvec:
+            sub_spaces.append(gym.spaces.Discrete(branch_size))
+        action_space = gym.spaces.Tuple(tuple(sub_spaces))
+        return action_space
+    else:
+        return action_space
+
+
 def is_continuous_action_space(action_space):
     return isinstance(action_space, gym.spaces.Box)
 
@@ -168,6 +191,7 @@ class TupleActionDistribution:
     usually done in Atari.
     Entropy of such a distribution is just a sum of entropies of individual distributions.
     """
+
     def __init__(self, action_space, logits_flat):
         self.logit_lengths = [calc_num_logits(s) for s in action_space.spaces]
         self.split_logits = torch.split(logits_flat, self.logit_lengths, dim=1)
@@ -274,6 +298,7 @@ class ContinuousActionDistribution(Independent):
             action_stddev_min=self.stddev.min(),
             action_stddev_max=self.stddev.max(),
         )
+
 
 class TanhNormal(torch.distributions.Normal, ABC):
     def __init__(self, loc, scale):

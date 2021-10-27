@@ -38,6 +38,7 @@ from multi_sample_factory.envs.env_utils import get_default_reward_shaping
 from multi_sample_factory.utils.timing import Timing
 from multi_sample_factory.utils.utils import summaries_dir, experiment_dir, log, str2bool, memory_consumption_mb, cfg_file, \
     ensure_dir_exists, list_child_processes, kill_processes, AttrDict, done_filename, save_git_diff, init_file_logger
+from multi_sample_factory.algorithms.utils.action_distributions import transform_action_space
 
 if os.name == 'nt':
     from multi_sample_factory.utils import Queue as MpQueue
@@ -241,7 +242,7 @@ class APPO(ReinforcementLearningAlgorithm):
 
         tmp_env = make_env_func(self.cfg, env_config=None)
         self.obs_space = tmp_env.observation_space
-        self.action_space = tmp_env.action_space
+        self.action_space = transform_action_space(tmp_env.action_space)
         self.num_agents = tmp_env.num_agents
 
         self.reward_shaping_scheme = None
