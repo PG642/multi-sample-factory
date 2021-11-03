@@ -22,3 +22,5 @@ def add_unity_env_args(env, parser):
     p = parser
     p.add_argument('--exec_dir', default='/work/grudelpg/executables', type=str,
                    help='Path of the executables for the unity environments.')
+    p.add_argument('--unity_time_scale', default=20.0, type=float,
+                   help='Controls the Time.timeScale of unity. For more information please visit https://docs.unity3d.com/ScriptReference/Time-timeScale.html.')
