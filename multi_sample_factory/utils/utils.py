@@ -5,7 +5,8 @@ import importlib
 import logging
 import operator
 import os
-import pwd
+if os.name != 'nt':
+    import pwd
 import tempfile
 from _queue import Empty
 from os.path import join
