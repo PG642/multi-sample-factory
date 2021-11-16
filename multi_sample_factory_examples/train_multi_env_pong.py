@@ -41,7 +41,7 @@ class MultiEnvPong(gym.Env):
         return self.env.reset()
 
     def step(self, actions):
-        self.env.step(actions)
+        return self.env.step(actions)
         
     def render(self, mode='human'):
         self.env.render(mode)
