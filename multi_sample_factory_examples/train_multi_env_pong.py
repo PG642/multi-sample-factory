@@ -31,8 +31,8 @@ class MultiEnvPong(gym.Env):
         self.cfg = cfg
 
         self.env = gym.make('ma_gym:PongDuel-v0')
-        self.observation_space = self.env.observation_space
-        self.action_space = self.env.action_space
+        self.observation_space = self.env.observation_space[0]
+        self.action_space = self.env.action_space[0]
 
         self.num_agents = self.env.n_agents
         self.is_multiagent = True
