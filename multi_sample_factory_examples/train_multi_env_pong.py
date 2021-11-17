@@ -59,9 +59,7 @@ def register_custom_encoder(custom_encoder_name, encoder_cls):
 def register_custom_components():
     global_env_registry().register_env(
         env_name_prefix='multi_agent_pong',
-        make_env_func=make_multi_agent_pong,
-        add_extra_params_func=add_extra_params_func,
-        override_default_params_func=override_default_params_func,
+        make_env_func=make_multi_agent_pong
     )
 
 
