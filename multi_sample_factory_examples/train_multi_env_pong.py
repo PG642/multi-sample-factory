@@ -42,7 +42,7 @@ class MultiEnvPong(gym.Env):
 
     def step(self, actions):
         return self.env.step(actions)
-        
+
     def render(self, mode='human'):
         self.env.render(mode)
 
@@ -55,7 +55,7 @@ def add_extra_params_func(env, parser):
 def register_custom_components():
     global_env_registry().register_env(
         env_name_prefix='multi_agent_pong',
-        make_env_func=make_pong_env,
+        make_env_func=make_multi_agent_pong,
         add_extra_params_func=add_extra_params_func,
         override_default_params_func=override_default_params_func,
     )
