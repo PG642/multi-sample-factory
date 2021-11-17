@@ -53,6 +53,9 @@ def override_default_params_func(env, parser):
     """Override default argument values for this family of environments."""
     pass
 
+def register_custom_encoder(custom_encoder_name, encoder_cls):
+    pass
+
 def register_custom_components():
     global_env_registry().register_env(
         env_name_prefix='multi_agent_pong',
