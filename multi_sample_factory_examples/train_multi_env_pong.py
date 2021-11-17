@@ -13,7 +13,6 @@ import gym
 import ma_gym
 import numpy as np
 
-from multi_sample_factory.algorithms.appo.model_utils import register_custom_encoder
 from multi_sample_factory.algorithms.utils.arguments import parse_args
 from multi_sample_factory.envs.env_registry import global_env_registry
 from multi_sample_factory.run_algorithm import run_algorithm
