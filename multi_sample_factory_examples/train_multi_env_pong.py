@@ -64,7 +64,7 @@ def register_custom_components():
 def main():
     """Script entry point."""
     register_custom_components()
-    cfg = custom_parse_args()
+    cfg = parse_args()
     status = run_algorithm(cfg)
     return status
 
