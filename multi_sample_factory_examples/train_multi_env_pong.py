@@ -17,8 +17,6 @@ from multi_sample_factory.algorithms.appo.model_utils import register_custom_enc
 from multi_sample_factory.algorithms.utils.arguments import parse_args
 from multi_sample_factory.envs.env_registry import global_env_registry
 from multi_sample_factory.run_algorithm import run_algorithm
-from multi_sample_factory_examples.train_custom_env_custom_model import CustomEncoder, override_default_params_func
-
 
 class MultiEnvPong(gym.Env):
     """
@@ -51,6 +49,10 @@ def make_multi_agent_pong(full_env_name, cfg=None, env_config=None):
 
 def add_extra_params_func(env, parser):
     pass  
+
+def override_default_params_func(env, parser):
+    """Override default argument values for this family of environments."""
+    pass
 
 def register_custom_components():
     global_env_registry().register_env(
