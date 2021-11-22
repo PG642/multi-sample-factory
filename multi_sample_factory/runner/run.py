@@ -9,7 +9,9 @@ from multi_sample_factory.utils.utils import log
 
 def runner_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--run', default=None, type=str, help='Name of the python script that describes the run, e.g. multi_sample_factory.runner.runs.doom_battle_hybrid')
+    parser.add_argument('--train_dir', default='./train_dir', type=str, help='Directory for sub-experiments')
+    parser.add_argument('--run', default=None, type=str,
+                        help='Name of the python module that describes the run, e.g. sample_factory.runner.runs.doom_battle_hybrid')
     parser.add_argument('--runner', default='processes', choices=['processes', 'slurm'])
     parser.add_argument('--pause_between', default=10, type=int, help='Pause in seconds between processes')
     parser.add_argument('--num_gpus', default=1, type=int, help='How many GPUs to use')
