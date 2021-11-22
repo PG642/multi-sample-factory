@@ -6,11 +6,11 @@ This isn't production code, but feel free to use as an example for your NGC setu
 import time
 from subprocess import Popen, PIPE
 
-from sample_factory.utils.utils import log, str2bool
+from multi_sample_factory.utils.utils import log, str2bool
 
 
 def add_ngc_args(parser):
-    parser.add_argument('--ngc_job_template', default=None, type=str, required=True, help='NGC command line template, specifying instance type, docker container, etc.')
+    parser.add_argument('--ngc_job_template', default=None, type=str, help='NGC command line template, specifying instance type, docker container, etc.')
     parser.add_argument('--ngc_print_only', default=False, type=str2bool, help='Just print commands to the console without executing')
     return parser
 
@@ -34,7 +34,8 @@ def run_ngc(run_description, args):
     for experiment_idx, experiment in enumerate(experiments):
         cmd, name, *_ = experiment
 
-        job_name = f'{args.run.split(".")[-1]}_{experiment_idx:03d}'
+        job_name = name
+        log.info('Job name: %s', job_name)
 
         ngc_job_cmd = ngc_template.replace('{{ name }}', job_name).replace('{{ experiment_cmd }}', cmd)
 
