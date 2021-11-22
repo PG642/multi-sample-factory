@@ -1,6 +1,7 @@
 import random
 import signal
 import time
+import os
 from collections import OrderedDict
 from queue import Empty, Full
 
@@ -844,6 +845,7 @@ class ActorWorker:
         retry on the initial reset(). This is definitely something to work on.
         """
         log.info('Initializing vector env runner %d...', self.worker_idx)
+        log.info(f'ACTOR worker {self.worker_idx}\tpid {os.getpid()}\tparent {os.getppid()}')
 
         # workers should ignore Ctrl+C because the termination is handled in the event loop by a special msg
         signal.signal(signal.SIGINT, signal.SIG_IGN)
