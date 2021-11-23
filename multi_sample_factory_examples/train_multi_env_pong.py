@@ -46,15 +46,6 @@ class MultiEnvPong(gym.Env):
 def make_multi_agent_pong(full_env_name, cfg=None, env_config=None):
     return MultiEnvPong(full_env_name, cfg)
 
-def add_extra_params_func(env, parser):
-    pass  
-
-def override_default_params_func(env, parser):
-    """Override default argument values for this family of environments."""
-    pass
-
-def register_custom_encoder(custom_encoder_name, encoder_cls):
-    pass
 
 def register_custom_components():
     global_env_registry().register_env(
