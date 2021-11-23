@@ -13,7 +13,7 @@ import gym
 import ma_gym
 import numpy as np
 
-from multi_sample_factory.algorithms.utils.arguments import parse_args
+from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
 from multi_sample_factory.envs.env_registry import global_env_registry
 from multi_sample_factory.run_algorithm import run_algorithm
 
@@ -54,14 +54,27 @@ def register_custom_components():
         make_env_func=make_multi_agent_pong
     )
 
+def custom_parse_args(argv=None, evaluation=False):
+    """
+    Parse default SampleFactory arguments and add user-defined arguments on top.
+    Allow to override argv for unit tests. Default value (None) means use sys.argv.
+    Setting the evaluation flag to True adds additional CLI arguments for evaluating the policy (see the enjoy_ script).
+
+    """
+    parser = arg_parser(argv, evaluation=evaluation)
+    parser.set_defaults(
+        encoder_custom=None
+    )
+    # SampleFactory parse_args function does some additional processing (see comments there)
+    cfg = parse_args(argv=argv, evaluation=evaluation, parser=parser)
+    return cfg
+
 
 def main():
     """Script entry point."""
     register_custom_components()
-    cfg = parse_args()
-    cfg.set_defaults(
-        encoder_custom=None
-    )
+    cfg = custom_parse_args()
+    
     status = run_algorithm(cfg)
     return status
 
