@@ -33,6 +33,7 @@ class MultiEnvPong(gym.Env):
 
         self.num_agents = self.env.n_agents
         self.is_multiagent = True
+        
 
     def reset(self):
         return self.env.reset()
@@ -58,6 +59,9 @@ def main():
     """Script entry point."""
     register_custom_components()
     cfg = parse_args()
+    cfg.set_defaults(
+        encoder_custom=None
+    )
     status = run_algorithm(cfg)
     return status
 
