@@ -38,7 +38,8 @@ class MultiEnvPong(gym.Env):
         return [np.array(obs) for obs in self.env.reset()]
 
     def step(self, actions):
-        obs_n, reward_n, done_n, info =  self.env.step(actions)
+        info = [dict() for _ in range(self.num_agents)]
+        obs_n, reward_n, done_n, _ =  self.env.step(actions)
         return [np.array(obs) for obs in obs_n], [np.array(reward) for reward in reward_n], [np.array(done) for done in done_n], info
 
     def render(self, mode='human'):
