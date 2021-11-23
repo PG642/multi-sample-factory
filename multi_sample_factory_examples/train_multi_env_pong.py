@@ -32,8 +32,7 @@ class MultiEnvPong(gym.Env):
         self.action_space = self.env.action_space[0]
 
         self.num_agents = self.env.n_agents
-        self.is_multiagent = True
-        
+        self.is_multiagent = True 
 
     def reset(self):
         return np.array(self.env.reset())
