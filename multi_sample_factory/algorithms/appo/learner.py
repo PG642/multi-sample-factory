@@ -814,7 +814,7 @@ class LearnerWorker:
                 with timing.add_time('losses'):
                     policy_loss = self._policy_loss(ratio, adv, clip_ratio_low, clip_ratio_high, valids)
                     exploration_loss = self.exploration_loss_func(action_distribution, valids)
-                    kl_loss = self.kl_loss_func(self.actor_critic.action_space, mb.action_logits, action_distribution, valids)
+                    kl_loss = self.kl_loss_func(self.actor_critic.module.action_space, mb.action_logits, action_distribution, valids)
 
                     actor_loss = policy_loss + exploration_loss + kl_loss
                     epoch_actor_losses.append(actor_loss.item())
