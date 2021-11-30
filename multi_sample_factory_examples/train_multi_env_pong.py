@@ -40,6 +40,11 @@ class MultiEnvPong(gym.Env):
     def step(self, actions):
         info = [dict() for _ in range(self.num_agents)]
         obs_n, reward_n, done_n, _ =  self.env.step(actions)
+
+        # check if done
+        if all(done_n) == True:
+            self.reset()
+
         return [np.array(obs) for obs in obs_n], reward_n, done_n, info
 
     def render(self, mode='human'):
