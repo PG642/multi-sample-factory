@@ -60,6 +60,9 @@ def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
             sub_spaces.append(gym.spaces.Discrete(branch_size))
         action_space = gym.spaces.Tuple(tuple(sub_spaces))
         return action_space
+    elif isinstance(action_space, gym.spaces.Tuple):
+        return action_space
+        #TODO If tuple contains multi discrete action spaces, unwrap them in a single tuple with discrete sub spaces
     else:
         return action_space
 
