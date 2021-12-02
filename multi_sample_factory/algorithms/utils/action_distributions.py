@@ -33,7 +33,10 @@ def calc_num_logits(action_space):
     if isinstance(action_space, gym.spaces.Discrete):
         return action_space.n
     elif isinstance(action_space, gym.spaces.Tuple):
-        return sum(space.n for space in action_space.spaces)
+        total_logits = 0
+        for space in action_space.spaces:
+            total_logits += calc_num_logits(space)
+        return total_logits
     elif isinstance(action_space, gym.spaces.Box):
         # regress one mean and one standard deviation for every action
         return np.prod(action_space.shape) * 2
@@ -42,7 +45,9 @@ def calc_num_logits(action_space):
 
 
 def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
-    """Transforms a multi discrete action space to an equivalent tuple action space with discrete sub spaces.
+    """Transforms action spaces, which are or contain multi-discrete action spaces into tuple
+    action spaces containing each multi-discrete branch as a discrete action space. Every other action
+    space is kept unchanged.
 
     Parameters
     ----------
@@ -52,7 +57,9 @@ def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
     Returns
     -------
     gym.spaces.space
-        A tuple action space, if the action was multi discrete. Otherwise the original action space.
+        A tuple action space, if the action was multi discrete. Alternatively a tuple action space with unwrapped
+        multi-discrete acton spaces, if the original space was a tuple with multi-discrete spaces.
+        Otherwise the original action space.
     """
     if isinstance(action_space, gym.spaces.MultiDiscrete):
         sub_spaces = []
@@ -61,8 +68,15 @@ def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
         action_space = gym.spaces.Tuple(tuple(sub_spaces))
         return action_space
     elif isinstance(action_space, gym.spaces.Tuple):
+        sub_spaces = []
+        for space in action_space.spaces:
+            if isinstance(space, gym.spaces.MultiDiscrete):
+                sub_spaces.extend(transform_action_space(space).spaces)
+            else:
+                sub_spaces.append(space)
+        print(sub_spaces)
+        action_space = gym.spaces.Tuple(tuple(sub_spaces))
         return action_space
-        #TODO If tuple contains multi discrete action spaces, unwrap them in a single tuple with discrete sub spaces
     else:
         return action_space
 

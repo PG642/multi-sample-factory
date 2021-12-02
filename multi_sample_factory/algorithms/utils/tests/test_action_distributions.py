@@ -185,3 +185,12 @@ class TestActionDistributions(TestCase):
         self.assertIsInstance(action_space, Tuple)
         num_logits = calc_num_logits(action_space)
         self.assertEqual(num_logits, 17)
+
+        # Test with mixed action space
+        continuous_space = Box(low=-1.0, high=2.0, shape=(3,), dtype=np.float64)
+        multi_discrete_space = MultiDiscrete([5, 5, 5, 2])
+        action_space = Tuple((continuous_space,multi_discrete_space))
+        action_space = transform_action_space((action_space))
+        self.assertIsInstance(action_space, Tuple)
+        num_logits = calc_num_logits(action_space)
+        self.assertEqual(num_logits, 23)
