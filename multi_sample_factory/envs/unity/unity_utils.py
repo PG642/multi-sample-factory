@@ -1,9 +1,10 @@
 from random import random
 from mlagents_envs.environment import UnityEnvironment
-from UnityGymWrapper import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from os.path import join
 import random
+
+from multi_sample_factory.envs.unity.UnityGymWrapper import UnityToGymWrapper
 
 
 class UnitySpec:
