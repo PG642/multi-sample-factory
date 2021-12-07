@@ -52,11 +52,13 @@ class UnityToGymWrapper(gym.Env):
         self.behaviour_specs = self._env.behavior_specs
 
         # Save the step result from the last time all Agents requested decisions.
+        self.num_agents = 0
         self._previous_decision_steps = {}
         self._env.reset()
         for name in self.behaviour_names:
             decision_steps, _ = self._env.get_steps(name)
             self._previous_decision_steps[name] = decision_steps
+            self.num_agents += len(decision_steps)
 
         # Set action spaces for each behaviour
         self._action_spaces = {}
@@ -142,7 +144,7 @@ class UnityToGymWrapper(gym.Env):
 
         for name in self.behaviour_names:
             prev_n_agents += n_agents
-            n_agents = len(self._previous_decision_steps[name])
+            n_agents += len(self._previous_decision_steps[name])
 
             behaviour_actions = np.vstack(action_n[prev_n_agents:n_agents])
 
@@ -216,8 +218,12 @@ class UnityToGymWrapper(gym.Env):
     def reward_range(self) -> Tuple[float, float]:
         return -float("inf"), float("inf")
 
-    def action_space(self, name) -> Space:
+    def action_space(self, name = None) -> Space:
+        if name is None:
+            return list(self._action_spaces.values())[0]
         return self._action_spaces[name]
 
-    def observation_space(self, name) -> Space:
+    def observation_space(self, name = None) -> Space:
+        if name is None:
+            return list(self._observation_spaces.values())[0]
         return self._observation_spaces[name]
