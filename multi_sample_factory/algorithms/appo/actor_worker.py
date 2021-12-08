@@ -168,6 +168,9 @@ class ActorState:
 
         if len(actions) == 1:
             actions = actions.item()
+            log.debug(str(type(actions)))
+            log.debug([str(type(action)) for action in actions])
+            log.debug(actions)
         return actions
 
     def record_env_step(self, reward, done, info, rollout_step):
