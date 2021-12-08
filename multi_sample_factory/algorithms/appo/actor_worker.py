@@ -108,12 +108,12 @@ class ActorState:
             all_subspaces_discrete = all(isinstance(s, (Discrete, Discretized)) for s in env.action_space.spaces)
             if all_subspaces_discrete:
                 self.integer_actions = True
-            else:
+            #else:
                 # tecnhically possible to add support for such spaces, but it's untested
                 # for now, look at Discretized instead.
-                raise Exception(
-                    'Mixed discrete & continuous action spaces are not supported (should be an easy fix)'
-                )
+                #raise Exception(
+                #    'Mixed discrete & continuous action spaces are not supported (should be an easy fix)'
+                #)
 
         self.env_training_info_interface = find_training_info_interface(env)
 
