@@ -1,3 +1,5 @@
+from typing import List
+
 from gym import Wrapper
 
 
@@ -24,11 +26,21 @@ class MultiAgentWrapper(Wrapper):
 
     def reset(self, **kwargs):
         obs = self.env.reset(**kwargs)
-        return [obs]
+        if not isinstance(obs, List):
+            obs = [obs]
+        return obs
 
     def step(self, action):
         action = action[0]
         obs, rew, done, info = self.env.step(action)
+        if not isinstance(obs, List):
+            obs = [obs]
+        if not isinstance(rew, List):
+            rew = [rew]
+        if not isinstance(done, List):
+            done = [done]
+        if not isinstance(info, List):
+            info = [info]
         if done:
             obs = self.env.reset()
-        return [obs], [rew], [done], [info]
+        return obs, rew, done, info
