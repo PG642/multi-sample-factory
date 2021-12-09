@@ -7,6 +7,7 @@ from gym import error, spaces, Space
 from mlagents_envs.base_env import ActionTuple, BaseEnv
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
+from gym import spaces
 
 from itertools import chain
 
