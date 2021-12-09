@@ -13,7 +13,7 @@ import gym
 import numpy as np
 
 from mlagents_envs.environment import UnityEnvironment
-from UnityGymWrapper import UnityToGymWrapper
+from multi_sample_factory_examples.multi_env_gym_wrapper import UnityToGymWrapper
 from multi_sample_factory.algorithms.utils.arguments import arg_parser, parse_args
 from multi_sample_factory.envs.env_registry import global_env_registry
 from multi_sample_factory.run_algorithm import run_algorithm
@@ -32,8 +32,8 @@ class MultiEnvRocket(gym.Env):
         env = UnityEnvironment(file_path)
 
         self.env = UnityToGymWrapper(env)
-        self.observation_space = self.env.observation_space[0]
-        self.action_space = self.env.action_space[0]
+        self.observation_space = self.env.observation_space
+        self.action_space = self.env.action_space
 
         self.num_agents = self.env.num_agents
         self.is_multiagent = True 

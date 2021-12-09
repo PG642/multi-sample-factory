@@ -61,7 +61,7 @@ class UnityToGymWrapper(gym.Env):
             self.num_agents += len(decision_steps)
 
         # Set action spaces for each behaviour
-        self._action_spaces = {}
+        self._action_space = {}
 
         for name in self.behaviour_names:
             action_spec = self.behaviour_specs[name].action_spec
@@ -82,24 +82,24 @@ class UnityToGymWrapper(gym.Env):
 
             if discrete_action_space is not None:
                 if continuous_action_space is not None:
-                    self._action_spaces[name] = spaces.Tuple((discrete_action_space, continuous_action_space))
+                    self._action_space[name] = spaces.Tuple((discrete_action_space, continuous_action_space))
                 else:
-                    self._action_spaces[name] = discrete_action_space
+                    self._action_space[name] = discrete_action_space
             elif continuous_action_space is not None:
-                self._action_spaces[name] = continuous_action_space
+                self._action_space[name] = continuous_action_space
             else:
                 raise UnityGymException(
                     "The action space is neither discrete nor continuous."
                 )
 
             if action_space_seed is not None:
-                self._action_spaces[name].seed(action_space_seed)
+                self._action_space[name].seed(action_space_seed)
 
         # Set observation space for each behaviour
-        self._observation_spaces = {}
+        self._observation_space = {}
         for name in self.behaviour_names:
             high = np.array([np.inf] * self._get_observation_size(name))
-            self._observation_spaces[name] = spaces.Box(-high, high, dtype=np.float32)
+            self._observation_space[name] = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         """Reset the state of the environment and return an initial observation.
@@ -218,12 +218,14 @@ class UnityToGymWrapper(gym.Env):
     def reward_range(self) -> Tuple[float, float]:
         return -float("inf"), float("inf")
 
-    def action_space(self, name = None) -> Space:
-        if name is None:
-            return list(self._action_spaces.values())[0]
-        return self._action_spaces[name]
+    @property
+    def action_space(self) -> Union[dict, Space]:
+        if len(self._action_space) == 1:
+            return list(self._action_space.values())[0]
+        return self._action_space
 
-    def observation_space(self, name = None) -> Space:
-        if name is None:
-            return list(self._observation_spaces.values())[0]
-        return self._observation_spaces[name]
+    @property
+    def observation_space(self) -> Union[dict, Space]:
+        if len(self._observation_space) == 1:
+            return list(self._observation_space.values())[0]
+        return self._observation_space
