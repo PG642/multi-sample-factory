@@ -34,11 +34,7 @@ class MultiEnvRocket(gym.Env):
         self.env = UnityToGymWrapper(env)
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
-        print(self.observation_space)
-        print(type(self.observation_space))
-        print(self.action_space)
-        print(type(self.action_space))
-
+        
         self.num_agents = self.env.num_agents
         self.is_multiagent = True 
 
