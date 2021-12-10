@@ -74,7 +74,6 @@ def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
                 sub_spaces.extend(transform_action_space(space).spaces)
             else:
                 sub_spaces.append(space)
-        print(sub_spaces)
         action_space = gym.spaces.Tuple(tuple(sub_spaces))
         return action_space
     else:
