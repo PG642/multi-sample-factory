@@ -15,7 +15,7 @@ from multi_sample_factory.utils.utils import log
 
 
 class TestActionDistributions(TestCase):
-    batch_size = 128  # whatever
+    batch_size = 4  # whatever
 
     def test_simple_distribution(self):
         simple_action_space = gym.spaces.Discrete(3)
@@ -102,6 +102,22 @@ class TestActionDistributions(TestCase):
 
         entropy = action_distribution.entropy()
         self.assertEqual(list(entropy.shape), [self.batch_size])
+
+    def test_tuple_distribution_with_mixed_space(self):
+        continuous_space = gym.spaces.Box(low = -1.0, high = 1.0, shape=[3], dtype=np.float32)
+        multi_discrete_space = gym.spaces.MultiDiscrete([3, 2, 2, 2, 2])
+        action_space = gym.spaces.Tuple([continuous_space, multi_discrete_space])
+        action_space = transform_action_space(action_space)
+        num_logits = calc_num_logits(action_space)
+        logits = torch.rand(self.batch_size, num_logits)
+        action_distribution = get_action_distribution(action_space, logits)
+
+        # Sampling actions
+        list_of_action_batches = [d.sample() for d in action_distribution.distributions]
+        print(list_of_action_batches)
+        batch_of_action_tuples = torch.stack(list_of_action_batches).transpose(0, 1)
+        print(batch_of_action_tuples)
+        #batch_of_action_tuples, log_probs = action_distribution.sample_actions_log_probs()
 
     def test_tuple_sanity_check(self):
         num_spaces, num_actions = 3, 2
