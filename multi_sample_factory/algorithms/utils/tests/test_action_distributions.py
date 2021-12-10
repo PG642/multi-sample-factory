@@ -104,6 +104,7 @@ class TestActionDistributions(TestCase):
         self.assertEqual(list(entropy.shape), [self.batch_size])
 
     def test_tuple_distribution_with_mixed_space(self):
+        # Run with: python -m unittest multi_sample_factory.algorithms.utils.tests.test_action_distributions.TestActionDistributions.test_tuple_distribution_with_mixed_space
         continuous_space = gym.spaces.Box(low = -1.0, high = 1.0, shape=[3], dtype=np.float32)
         multi_discrete_space = gym.spaces.MultiDiscrete([3, 2, 2, 2, 2])
         action_space = gym.spaces.Tuple([continuous_space, multi_discrete_space])
