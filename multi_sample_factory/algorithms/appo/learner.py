@@ -1002,7 +1002,7 @@ class LearnerWorker:
     def init_model(self, timing):
         host_list = os.getenv('MYHOSTLIST').split(",")
         master_addr = host_list[0].split("*", 1)[0]
-        master_port = 29500
+        master_port = 29500 + self.policy_id
         world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
         rank = int(os.environ['SLURM_PROCID'])
 
