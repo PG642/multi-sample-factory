@@ -82,64 +82,6 @@ class TestActionDistributions(TestCase):
             log.debug('Sampling timing: %s', timing)
             time.sleep(0.1)  # to finish logging
 
-    def test_tuple_distribution(self):
-        num_spaces = random.randint(1, 4)
-        spaces = [gym.spaces.Discrete(random.randint(2, 5)) for _ in range(num_spaces)]
-        action_space = gym.spaces.Tuple(spaces)
-
-        num_logits = calc_num_logits(action_space)
-        logits = torch.rand(self.batch_size, num_logits)
-
-        self.assertEqual(num_logits, sum(s.n for s in action_space.spaces))
-
-        action_distribution = get_action_distribution(action_space, logits)
-
-        tuple_actions = action_distribution.sample()
-        self.assertEqual(list(tuple_actions.shape), [self.batch_size, num_spaces])
-
-        log_probs = action_distribution.log_prob(tuple_actions)
-        self.assertEqual(list(log_probs.shape), [self.batch_size])
-
-        entropy = action_distribution.entropy()
-        self.assertEqual(list(entropy.shape), [self.batch_size])
-
-    def test_tuple_distribution_with_mixed_space(self):
-        # Run with: python -m unittest multi_sample_factory.algorithms.utils.tests.test_action_distributions.TestActionDistributions.test_tuple_distribution_with_mixed_space
-        continuous_space = gym.spaces.Box(low = -1.0, high = 1.0, shape=[3], dtype=np.float32)
-        multi_discrete_space = gym.spaces.MultiDiscrete([3, 2, 2, 2, 2])
-        action_space = gym.spaces.Tuple([continuous_space, multi_discrete_space])
-        action_space = transform_action_space(action_space)
-        num_logits = calc_num_logits(action_space)
-        logits = torch.rand(self.batch_size, num_logits)
-        action_distribution = get_action_distribution(action_space, logits)
-
-        # Sampling actions
-        list_of_action_batches = [d.sample() for d in action_distribution.distributions]
-        print(list_of_action_batches)
-        batch_of_action_tuples = torch.stack(list_of_action_batches).transpose(0, 1)
-        print(batch_of_action_tuples)
-        #batch_of_action_tuples, log_probs = action_distribution.sample_actions_log_probs()
-
-    def test_tuple_sanity_check(self):
-        num_spaces, num_actions = 3, 2
-        simple_space = gym.spaces.Discrete(num_actions)
-        spaces = [simple_space for _ in range(num_spaces)]
-        tuple_space = gym.spaces.Tuple(spaces)
-
-        self.assertTrue(calc_num_logits(tuple_space), num_spaces * num_actions)
-
-        simple_logits = torch.zeros(1, num_actions)
-        tuple_logits = torch.zeros(1, calc_num_logits(tuple_space))
-
-        simple_distr = get_action_distribution(simple_space, simple_logits)
-        tuple_distr = get_action_distribution(tuple_space, tuple_logits)
-
-        tuple_entropy = tuple_distr.entropy()
-        self.assertEqual(tuple_entropy, simple_distr.entropy() * num_spaces)
-
-        simple_logprob = simple_distr.log_prob(torch.ones(1))
-        tuple_logprob = tuple_distr.log_prob(torch.ones(1, num_spaces))
-        self.assertEqual(tuple_logprob, simple_logprob * num_spaces)
 
     def test_sanity(self):
         raw_logits = torch.tensor([[0.0, 1.0, 2.0]])
