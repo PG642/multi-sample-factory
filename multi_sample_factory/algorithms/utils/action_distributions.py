@@ -72,14 +72,6 @@ def transform_action_space(action_space: gym.spaces.space) -> gym.spaces.space:
         for space in action_space.spaces:
             if isinstance(space, gym.spaces.MultiDiscrete):
                 sub_spaces.extend(transform_action_space(space).spaces)
-            elif isinstance(space, gym.spaces.Box):
-                if len(space.shape) != 1:
-                    raise Exception('Non-trivial shape Box action spaces not currently supported. Try to flatten it.')
-                for action_index in range(space.shape[0]):
-                    sub_spaces.append(gym.spaces.Box(high = space.high[action_index],
-                                                     low = space.low[action_index],
-                                                     shape=[1],
-                                                     dtype = space.dtype))
             else:
                 sub_spaces.append(space)
         action_space = gym.spaces.Tuple(tuple(sub_spaces))
