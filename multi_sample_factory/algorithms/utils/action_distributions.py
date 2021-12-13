@@ -18,7 +18,10 @@ def calc_num_actions(action_space):
     if isinstance(action_space, gym.spaces.Discrete):
         return 1
     elif isinstance(action_space, gym.spaces.Tuple):
-        return len(action_space.spaces)
+        num_actions = 0
+        for space in action_space.spaces:
+            num_actions += calc_num_actions(space)
+        return num_actions
     elif isinstance(action_space, gym.spaces.Box):
         if len(action_space.shape) != 1:
             raise Exception('Non-trivial shape Box action spaces not currently supported. Try to flatten it.')
