@@ -11,7 +11,7 @@ from gym.spaces import Discrete, Tuple
 from torch.multiprocessing import Process as TorchProcess
 
 from multi_sample_factory.algorithms.appo.appo_utils import TaskType, make_env_func, set_gpus_for_process
-from multi_sample_factory.algorithms.appo.policy_manager import PolicyManager
+from multi_sample_factory.algorithms.appo.policy_manager import PolicyManager, MultiGpuPolicyManager
 from multi_sample_factory.algorithms.appo.population_based_training import PbtTask
 from multi_sample_factory.algorithms.utils.spaces.discretized import Discretized
 from multi_sample_factory.envs.env_utils import set_reward_shaping, find_training_info_interface, set_training_info
@@ -56,7 +56,7 @@ class ActorState:
         self.agent_idx = agent_idx
 
         self.policy_mgr = policy_mgr
-        self.curr_policy_id = self.policy_mgr.get_policy_for_agent(agent_idx, env_idx)
+        self.curr_policy_id = self.policy_mgr.get_policy_for_agent(agent_idx, env_idx, self.worker_idx)
         self._env_set_curr_policy()
 
         self.shared_buffers = shared_buffers
@@ -206,7 +206,7 @@ class ActorState:
 
             set_training_info(self.env_training_info_interface, self.approx_env_steps.get(self.curr_policy_id, 0))
 
-            new_policy_id = self.policy_mgr.get_policy_for_agent(self.agent_idx, self.env_idx)
+            new_policy_id = self.policy_mgr.get_policy_for_agent(self.agent_idx, self.env_idx, self.worker_idx)
             if new_policy_id != self.curr_policy_id:
                 self._on_new_policy(new_policy_id)
 
