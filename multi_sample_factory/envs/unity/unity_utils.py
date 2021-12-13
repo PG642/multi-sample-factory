@@ -15,7 +15,8 @@ class UnitySpec:
 UNITY_ENVS = [
     UnitySpec('unity_saving_training_continuous', 'saving_training_continuous'),
     UnitySpec('unity_saving_training_discrete', 'saving_training_discrete'),
-    UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete')
+    UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete'),
+    UnitySpec('unity_multi_agent_env', 'multi_agent_env')
     # You can add more unity environments here if needed.
 ]
 
