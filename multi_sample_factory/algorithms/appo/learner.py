@@ -1035,11 +1035,12 @@ class LearnerWorker:
             self.aux_loss_module.to(device=self.device)
 
         if rank == 0:
-            log.info('Initialized torch.DDP model with master address %s at port %s, using %s different nodes.',
+            log.info('Initialized torch.DDP master node with address %s at port %s, using %s different nodes.',
                      master_addr,
                      master_port,
                      world_size)
-            log.debug('Rank of master is %s', rank)
+        else:
+            log.debug('Initialized model on node %s.', rank)
 
     def load_from_checkpoint(self, policy_id):
         checkpoints = self.get_checkpoints(self.checkpoint_dir(self.cfg, policy_id))
