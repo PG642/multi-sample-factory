@@ -1002,9 +1002,23 @@ class LearnerWorker:
     def init_model(self, timing):
         host_list = os.getenv('MYHOSTLIST').split(",")
         master_addr = host_list[0].split("*", 1)[0]
-        master_port = 29500 + self.policy_id
-        world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
-        rank = int(os.environ['SLURM_PROCID'])
+        backend = "gloo"
+        default_master_port = 29500
+        if self.cfg.with_pbt:
+            master_port = default_master_port + self.policy_id
+            world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+            rank = int(os.environ['SLURM_PROCID'])
+        else:
+            # TODO Test this
+            # This should disable the ability to train the same policy without PBT in parallel,
+            # but should give us the ability to use multiple GPUS per node.
+            # In this case it is okay, that e.g. policy 0 and policy 1 can be mixed in environments by the policy manager
+            # (giving the impression of different policies training against each other), because torch's DDP ensures
+            # that both policies are actually the same.
+            master_port = default_master_port
+            world_size = int(os.environ['SLURM_JOB_NUM_NODES']) * self.cfg.num_policies
+            rank = self.cfg.num_policies * int(os.environ['SLURM_PROCID']) + self.policy_id
+
 
         store = torch.distributed.TCPStore (
             master_addr,
@@ -1012,8 +1026,6 @@ class LearnerWorker:
             world_size,
             rank == 0,
         )
-
-        backend="gloo"
 
         # processing group
         torch.distributed.init_process_group (
