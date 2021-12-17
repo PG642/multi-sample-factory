@@ -11,6 +11,7 @@ from gym.spaces import Discrete, Tuple
 from torch.multiprocessing import Process as TorchProcess
 
 from multi_sample_factory.algorithms.appo.appo_utils import TaskType, make_env_func, set_gpus_for_process
+from multi_sample_factory.algorithms.appo.policy_manager import PolicyManager
 from multi_sample_factory.algorithms.appo.population_based_training import PbtTask
 from multi_sample_factory.algorithms.utils.spaces.discretized import Discretized
 from multi_sample_factory.envs.env_utils import set_reward_shaping, find_training_info_interface, set_training_info
