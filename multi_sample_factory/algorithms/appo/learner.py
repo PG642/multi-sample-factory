@@ -1342,7 +1342,7 @@ class LearnerWorker:
 
     def init(self):
         self.task_queue.put((TaskType.INIT, None))
-        self.initialized_event.wait()
+        #self.initialized_event.wait()
 
     def save_model(self, timeout=None):
         #if(self.rank != 0):

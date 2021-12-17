@@ -441,6 +441,9 @@ class APPO(ReinforcementLearningAlgorithm):
             self.learner_workers[policy_id] = learner_worker
             learner_idx += 1
 
+        for policy_id in range(self.cfg.num_policies):
+            self.learner_workers[policy_id].initialized_event.wait()
+
         log.info('Initializing policy workers...')
         for policy_id in range(self.cfg.num_policies):
             self.policy_workers[policy_id] = []
