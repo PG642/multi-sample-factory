@@ -620,6 +620,7 @@ class VectorEnvRunner:
         for env_i, e in enumerate(self.envs):
             with timing.add_time('env_step'):
                 actions = [s.curr_actions() for s in self.actor_states[env_i]]
+                log.debug(actions)
                 new_obs, rewards, dones, infos = e.step(actions)
 
             with timing.add_time('overhead'):
