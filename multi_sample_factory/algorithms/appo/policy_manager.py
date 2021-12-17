@@ -21,7 +21,7 @@ class PolicyManager:
         self.num_agents = num_agents
         self.num_policies = cfg.num_policies
         self.mix_policies_in_one_env = cfg.pbt_mix_policies_in_one_env
-        self.with_pbt = self.cfg.with_pbt
+        self.with_pbt = cfg.with_pbt
 
         self.resample_env_policy_every = 10  # episodes
         self.env_policies = dict()
