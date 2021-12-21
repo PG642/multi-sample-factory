@@ -113,6 +113,9 @@ class UnityToGymWrapper(gym.Env):
             decision_steps, _ = self._env.get_steps(name)
             self._previous_decision_steps[name] = decision_steps
             obs_n = obs_n + list(chain.from_iterable(decision_steps.obs))
+
+        if not isinstance(obs_n, List):
+            obs_n = [obs_n]
         return obs_n
 
     def step(self, action_n: List[Any]) -> Tuple[
@@ -166,9 +169,23 @@ class UnityToGymWrapper(gym.Env):
             rew_n = rew_n + (self._get_rew(decision_steps, terminal_steps))
             done_n = done_n + (self._get_done(decision_steps, terminal_steps))
             info_n = info_n + (self._get_info(decision_steps, terminal_steps))
+
+            #?????
+            info_n = [dict() for _ in range(self.num_agents)]
+
             if sum(done_n) > 0:
                 self.game_over = True
 
+            if not isinstance(obs, List):
+                obs = [obs]
+            
+            if not isinstance(rew_n, List):
+                rew_n = [rew_n]
+            if not isinstance(done_n, List):
+                done_n = [done_n]
+            if not isinstance(info_n, List):
+                info_n = [info_n]
+            
         return obs_n, rew_n, done_n, info_n
 
     @staticmethod
