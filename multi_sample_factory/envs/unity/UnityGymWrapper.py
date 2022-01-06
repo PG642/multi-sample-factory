@@ -174,11 +174,12 @@ class UnityToGymWrapper(gym.Env):
             #?????
             info_n = [dict() for _ in range(self.num_agents)]
 
-            if sum(done_n) > 0:
+            if any(done_n):
                 self.game_over = True
+                self.reset()
 
-            if not isinstance(obs, List):
-                obs = [obs_n]
+            if not isinstance(obs_n, List):
+                obs_n = [obs_n]
             
             if not isinstance(rew_n, List):
                 rew_n = [rew_n]
