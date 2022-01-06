@@ -587,9 +587,6 @@ class VectorEnvRunner:
 
             for agent_i, obs in enumerate(observations):
                 actor_state = self.actor_states[env_i][agent_i]
-                #! Debug
-                print("DEBUG Actor Worker")
-                print(obs)
                 actor_state.set_trajectory_data(dict(obs=obs), self.rollout_step)
                 # rnn state is already initialized at zero
 

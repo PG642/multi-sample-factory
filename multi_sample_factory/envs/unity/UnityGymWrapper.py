@@ -116,6 +116,11 @@ class UnityToGymWrapper(gym.Env):
 
         if not isinstance(obs_n, List):
             obs_n = [obs_n]
+
+        #! Debug
+        print("DEBUG UnityGymWrapper Reset", flush=True)
+        print(obs_n, flush=True)
+
         return obs_n
 
     def step(self, action_n: List[Any]) -> Tuple[
@@ -177,7 +182,7 @@ class UnityToGymWrapper(gym.Env):
                 self.game_over = True
 
             if not isinstance(obs, List):
-                obs = [obs]
+                obs = [obs_n]
             
             if not isinstance(rew_n, List):
                 rew_n = [rew_n]
@@ -185,7 +190,8 @@ class UnityToGymWrapper(gym.Env):
                 done_n = [done_n]
             if not isinstance(info_n, List):
                 info_n = [info_n]
-            
+        
+
         return obs_n, rew_n, done_n, info_n
 
     @staticmethod
@@ -247,3 +253,9 @@ class UnityToGymWrapper(gym.Env):
         if len(self._observation_space) == 1:
             return list(self._observation_space.values())[0]
         return self._observation_space
+        
+
+# ToDo:
+#? - Teste ob mehrere Agenten verwendet werden oder nur einer -> über _info_ dict kann das Team abgelesen werden
+#? - Merge die änderungen von Actor worker in den Wrapper hier
+#? - Untersuche, ob der Wrapper die beiden Action Spaces passend stacked (siehe z.B. Zeile 158)
