@@ -160,9 +160,6 @@ class UnityToGymWrapper(gym.Env):
                 action_tuple.add_discrete(behaviour_actions)
             self._env.set_actions(name, action_tuple)
 
-        if len(rew_n) == 4:
-            print("len(rew_n) == 4", rew_n)
-
         self._env.step()
 
         for name in self.behaviour_names:
@@ -177,10 +174,6 @@ class UnityToGymWrapper(gym.Env):
             #?????
             info_n = [dict() for _ in range(self.num_agents)]
 
-            if any(done_n):
-                self.game_over = True
-                self.reset()
-
             if not isinstance(obs_n, List):
                 obs_n = [obs_n]
             
@@ -191,7 +184,10 @@ class UnityToGymWrapper(gym.Env):
             if not isinstance(info_n, List):
                 info_n = [info_n]
         
-
+        if any(done_n):
+                self.game_over = True
+                self.reset()
+        
         return obs_n, rew_n, done_n, info_n
 
     @staticmethod
