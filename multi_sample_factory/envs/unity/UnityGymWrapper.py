@@ -171,7 +171,13 @@ class UnityToGymWrapper(gym.Env):
             done_n = done_n + (self._get_done(decision_steps, terminal_steps))
             info_n = info_n + (self._get_info(decision_steps, terminal_steps))
 
-            #?????
+            for idx, agent_id in enumerate(decision_steps.agent_id):
+                if agent_id in terminal_steps.agent_id:
+                    del obs_n[idx]
+                    del rew_n[idx]
+                    del done_n[idx]
+                    del info_n[idx]
+                    
             info_n = [dict() for _ in range(self.num_agents)]
 
             if not isinstance(obs_n, List):
