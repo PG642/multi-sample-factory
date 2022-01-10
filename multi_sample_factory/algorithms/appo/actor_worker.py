@@ -449,6 +449,8 @@ class VectorEnvRunner:
                 print('env_i:', env_i, flush=True)
                 print('agent_i:', agent_i, flush=True)
                 print('r:', r, flush=True)
+                print('rewards', rewards, flush=True)
+                print('self.actor_states', self.actor_states, flush=True)
                 print('self.actor_states[env_i][agent_i].last_episode_reward:', self.actor_states[env_i][agent_i].last_episode_reward, flush=True)
 
         rewards = np.asarray(rewards, dtype=np.float32)
