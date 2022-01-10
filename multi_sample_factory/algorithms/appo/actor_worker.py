@@ -446,10 +446,10 @@ class VectorEnvRunner:
             try:
                 self.actor_states[env_i][agent_i].last_episode_reward += r
             except Exception as e:
-                print('env_i:', env_i)
-                print('agent_i:', agent_i)
-                print('r:', r)
-                print('self.actor_states[env_i][agent_i].last_episode_reward:', self.actor_states[env_i][agent_i].last_episode_reward)
+                print('env_i:', env_i, flush=True)
+                print('agent_i:', agent_i, flush=True)
+                print('r:', r, flush=True)
+                print('self.actor_states[env_i][agent_i].last_episode_reward:', self.actor_states[env_i][agent_i].last_episode_reward, flush=True)
 
         rewards = np.asarray(rewards, dtype=np.float32)
         rewards = rewards * self.cfg.reward_scale
