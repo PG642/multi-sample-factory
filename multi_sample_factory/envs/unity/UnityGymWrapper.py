@@ -160,6 +160,9 @@ class UnityToGymWrapper(gym.Env):
                 action_tuple.add_discrete(behaviour_actions)
             self._env.set_actions(name, action_tuple)
 
+        if len(rew_n) == 4:
+            print("len(rew_n) == 4", rew_n)
+
         self._env.step()
 
         for name in self.behaviour_names:
