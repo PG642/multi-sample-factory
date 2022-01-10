@@ -185,8 +185,8 @@ class UnityToGymWrapper(gym.Env):
                 info_n = [info_n]
         
         if any(done_n):
-                self.game_over = True
-                self.reset()
+            self.game_over = True
+            self.reset()
         
         return obs_n, rew_n, done_n, info_n
 
