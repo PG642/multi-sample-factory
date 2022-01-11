@@ -193,9 +193,6 @@ class UnityToGymWrapper(gym.Env):
         if any(done_n):
             self.game_over = True
             self.reset()
-            
-        if len(rew_n) > self.num_agents:
-            print("rew_n", rew_n, flush=True)
         
         return obs_n, rew_n, done_n, info_n
 

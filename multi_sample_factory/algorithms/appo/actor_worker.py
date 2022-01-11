@@ -443,15 +443,7 @@ class VectorEnvRunner:
         """
 
         for agent_i, r in enumerate(rewards):
-            try:
-                self.actor_states[env_i][agent_i].last_episode_reward += r
-            except Exception as e:
-                print('env_i:', env_i, flush=True)
-                print('agent_i:', agent_i, flush=True)
-                print('r:', r, flush=True)
-                print('rewards', rewards, flush=True)
-                print('self.actor_states', self.actor_states, flush=True)
-                print('self.actor_states[env_i][agent_i].last_episode_reward:', self.actor_states[env_i][agent_i].last_episode_reward, flush=True)
+            self.actor_states[env_i][agent_i].last_episode_reward += r
 
         rewards = np.asarray(rewards, dtype=np.float32)
         rewards = rewards * self.cfg.reward_scale
