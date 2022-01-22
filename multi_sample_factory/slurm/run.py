@@ -10,9 +10,8 @@ from pathlib import Path
 from typing import Tuple
 
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
-from multi_sample_factory.runner.run import runner_argparser
 from multi_sample_factory.slurm.grids.grid import Grid
-from multi_sample_factory.utils.utils import log, str2bool
+from multi_sample_factory.utils.utils import  str2bool
 
 
 def runner_argparser():
