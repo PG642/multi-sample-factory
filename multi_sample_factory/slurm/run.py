@@ -40,7 +40,7 @@ def runner_argparser():
                         type=str,
                         help='Absolute path to the multi sample factory repo.')
     parser.add_argument('--destination',
-                        default='work/grudelpg/jobs/',
+                        default='/work/grudelpg/jobs/',
                         type=str,
                         help="Destination of the jobs folder.")
     parser.add_argument('--only_files',
