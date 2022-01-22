@@ -3,6 +3,7 @@ import csv
 import importlib
 import itertools
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -11,7 +12,7 @@ from typing import Tuple
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory.runner.run import runner_argparser
 from multi_sample_factory.slurm.grids.grid import Grid
-from multi_sample_factory.utils.utils import log
+from multi_sample_factory.utils.utils import log, str2bool
 
 
 def runner_argparser():
@@ -42,6 +43,10 @@ def runner_argparser():
                         default='work/grudelpg/jobs/',
                         type=str,
                         help="Destination of the jobs folder.")
+    parser.add_argument('--only_files',
+                        default=False,
+                        type=str2bool,
+                        help="If True, the bash files are only created, but not scheduled.")
     return parser
 
 
@@ -80,6 +85,10 @@ def main():
 
     # Create directory for jobs
     directory = os.path.join(args.destination, grid.name)
+    try:
+        shutil.rmtree(directory)
+    except OSError as e:
+        print("Path did not exist previously, creating a new one.")
     Path(directory).mkdir(parents=True, exist_ok=True)
 
     for i, combination in enumerate(itertools.product(*params)):
@@ -93,7 +102,7 @@ def main():
             n = 1
         for repetition in range(args.repeat):
             full_job_name = job_name + "_{0:03d}".format(repetition)
-            bash_script = grid.setup.format(partition, time_limit, n, full_job_name, grid.env, args.msf_dir)
+            bash_script = grid.setup.format(partition, time_limit, n, full_job_name, grid.env, args.msf_dir, grid.name)
             if grid.base_parameters != "":
                 bash_script = bash_script + " " + grid.base_parameters
             for parameter, value in zip(keys, combination):
@@ -107,10 +116,11 @@ def main():
             with open(file_path, 'w') as file:
                 file.write(bash_script)
 
-            import subprocess
-            bashCommand = "sbatch {0}".format(file_path)
-            process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-            output, error = process.communicate()
+            if not args.only_files:
+                import subprocess
+                bashCommand = "sbatch {0}".format(file_path)
+                process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+                output, error = process.communicate()
 
     with open(os.path.join(directory, '{0}.csv'.format(args.info_file)), 'w', newline='') as csv_file:
         fieldnames = ['job_name'] + keys
