@@ -74,7 +74,7 @@ def main():
         try:
             run_module = importlib.import_module(f'multi_sample_factory.slurm.grids.{args.grid}')
         except ImportError:
-            log.error('Could not import the run module')
+            print('Could not import the run module')
             return ExperimentStatus.FAILURE
 
     grid: Grid = run_module.GRID
