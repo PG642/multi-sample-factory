@@ -11,7 +11,7 @@ from typing import Tuple
 
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory.slurm.grids.grid import Grid
-from multi_sample_factory.utils.utils import  str2bool
+from multi_sample_factory.utils.utils import str2bool
 
 
 def runner_argparser():
@@ -93,7 +93,7 @@ def main():
     for i, combination in enumerate(itertools.product(*params)):
         job_name = "{0}_{1:03d}".format(grid.name, i)
         info.append([job_name] + list(combination))
-        time_limit, partition = parse_time_limit(args.time_limit)
+        time_limit_str, partition = parse_time_limit(args.time_limit)
         NUM_NODES_PARAM = 'N'
         if NUM_NODES_PARAM in keys:
             n = combination[keys.index(NUM_NODES_PARAM)]
@@ -101,7 +101,7 @@ def main():
             n = 1
         for repetition in range(args.repeat):
             full_job_name = job_name + "_{0:03d}".format(repetition)
-            bash_script = grid.setup.format(partition, time_limit, n, full_job_name, grid.env, args.msf_dir, grid.name)
+            bash_script = grid.setup.format(partition, time_limit_str, n, full_job_name, grid.env, args.msf_dir, grid.name)
             if grid.base_parameters != "":
                 bash_script = bash_script + " " + grid.base_parameters
             for parameter, value in zip(keys, combination):
@@ -109,6 +109,8 @@ def main():
                     continue
                 else:
                     bash_script = bash_script + " --{0}={1}".format(parameter, value)
+            # Add experiment and env
+            bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir=train_dir=/work/grudelpg/Trainingsergebnisse/{3}".format(grid.env, full_job_name, args.time_limit*60, grid.name)
 
             # Write the file
             file_path = os.path.join(directory, '{0}.sh'.format(full_job_name))
