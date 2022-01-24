@@ -23,9 +23,7 @@ def runner_argparser():
     parser.add_argument('--info_file',
                         default='info',
                         type=str,
-                        help='name of the CSV file containing the parameter.')
-    parser.add_argument('--experiment_suffix', default='', type=str,
-                        help='Append this to the name of the experiment dir')
+                        help='Name of the CSV file containing the parameter.')
     parser.add_argument('--time_limit',
                         default=10,
                         type=int,
@@ -110,7 +108,7 @@ def main():
                 else:
                     bash_script = bash_script + " --{0}={1}".format(parameter, value)
             # Add experiment and env
-            bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir=/work/grudelpg/Trainingsergebnisse/{3}".format(grid.env, full_job_name, args.time_limit*60, grid.name)
+            bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir={3}".format(grid.env, full_job_name, args.time_limit * 60, os.path.join(args.train_dir, grid.name))
 
             # Write the file
             file_path = os.path.join(directory, '{0}.sh'.format(full_job_name))
