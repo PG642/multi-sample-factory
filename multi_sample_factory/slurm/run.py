@@ -116,10 +116,8 @@ def main():
                 file.write(bash_script)
 
             if not args.only_files:
-                import subprocess
                 bashCommand = "sbatch {0}".format(file_path)
-                process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-                output, error = process.communicate()
+                os.system(bashCommand)
 
     with open(os.path.join(directory, '{0}.csv'.format(args.info_file)), 'w', newline='') as csv_file:
         fieldnames = ['job_name'] + keys
