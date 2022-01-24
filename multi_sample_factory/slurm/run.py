@@ -172,8 +172,8 @@ def main():
             writer.writerow(dict(zip(fieldnames, line)))
 
     if args.only_files:
-        with open(os.path.join(jobs_directory, 'run_all.sh'), 'w'):
-            file.write("for entry in ./*;\ndo\n   sbatch ${entry}\ndone")
+        with open(os.path.join(jobs_directory, 'run_all.sh'), 'w') as run_all_file:
+            run_all_file.write("for entry in ./*;\ndo\n   sbatch ${entry}\ndone")
 
 
 if __name__ == '__main__':
