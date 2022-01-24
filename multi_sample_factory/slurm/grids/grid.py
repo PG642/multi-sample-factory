@@ -14,7 +14,7 @@ class Grid:
 #SBATCH --time={1}
 #SBATCH -N {2}
 #SBATCH --job-name={3}
-#SBATCH --output=/work/grudelpg/logs/{6}/{3}.log
+#SBATCH --output={6}
 #SBATCH --signal=B:SIGQUIT@120
 #----------------------------------------------------------------------------------------
 #Variables

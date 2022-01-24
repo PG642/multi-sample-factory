@@ -1,3 +1,4 @@
+import numpy
 import argparse
 import csv
 import importlib
@@ -44,6 +45,10 @@ def runner_argparser():
                         default=False,
                         type=str2bool,
                         help="If True, the bash files are only created, but not scheduled.")
+    parser.add_argument('--log_dir',
+                        default='/work/grudelpg/logs',
+                        type=str,
+                        help="Directory for logs files. This path will be extended with the name of the grid.")
     return parser
 
 
@@ -64,6 +69,7 @@ def parse_time_limit(time_limit: int) -> Tuple[str, str]:
 def main():
     args = runner_argparser().parse_args(sys.argv[1:])
 
+    # Import the module
     try:
         # assuming we're given the full name of the module
         run_module = importlib.import_module(f'{args.grid}')
@@ -73,20 +79,25 @@ def main():
         except ImportError:
             print('Could not import the run module')
             return ExperimentStatus.FAILURE
-
     grid: Grid = run_module.GRID
 
     params = grid.params.values()
     keys = list(grid.params.keys())
     info = []
 
-    # Create directory for jobs
-    directory = os.path.join(args.destination, grid.name)
+    # Remove old log and job dirs
+    jobs_directory = os.path.join(args.destination, grid.name)
+    logs_directory = os.path.join(args.log_dir, grid.name)
     try:
-        shutil.rmtree(directory)
+        shutil.rmtree(jobs_directory)
     except OSError as e:
-        print("Path did not exist previously, creating a new one.")
-    Path(directory).mkdir(parents=True, exist_ok=True)
+        pass
+    try:
+        shutil.rmtree(logs_directory)
+    except OSError as e:
+        pass
+    Path(jobs_directory).mkdir(parents=True, exist_ok=True)
+    Path(logs_directory).mkdir(parents=True, exist_ok=True)
 
     for i, combination in enumerate(itertools.product(*params)):
         job_name = "{0}_{1:03d}".format(grid.name, i)
@@ -99,7 +110,7 @@ def main():
             n = 1
         for repetition in range(args.repeat):
             full_job_name = job_name + "_{0:03d}".format(repetition)
-            bash_script = grid.setup.format(partition, time_limit_str, n, full_job_name, grid.env, args.msf_dir, grid.name)
+            bash_script = grid.setup.format(partition, time_limit_str, n, full_job_name, grid.env, args.msf_dir, os.path.join(logs_directory, full_job_name) + '.log')
             if grid.base_parameters != "":
                 bash_script = bash_script + " " + grid.base_parameters
             for parameter, value in zip(keys, combination):
@@ -111,7 +122,7 @@ def main():
             bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir={3}".format(grid.env, full_job_name, args.time_limit * 60, os.path.join(args.train_dir, grid.name))
 
             # Write the file
-            file_path = os.path.join(directory, '{0}.sh'.format(full_job_name))
+            file_path = os.path.join(jobs_directory, '{0}.sh'.format(full_job_name))
             with open(file_path, 'w') as file:
                 file.write(bash_script)
 
@@ -119,7 +130,7 @@ def main():
                 bashCommand = "sbatch {0}".format(file_path)
                 os.system(bashCommand)
 
-    with open(os.path.join(directory, '{0}.csv'.format(args.info_file)), 'w', newline='') as csv_file:
+    with open(os.path.join(jobs_directory, '{0}.csv'.format(args.info_file)), 'w', newline='') as csv_file:
         fieldnames = ['job_name'] + keys
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
