@@ -1,4 +1,3 @@
-import numpy
 import argparse
 import csv
 import importlib
@@ -42,9 +41,9 @@ def runner_argparser():
                         type=str,
                         help="Destination of the jobs folder.")
     parser.add_argument('--only_files',
-                        default=False,
+                        default=True,
                         type=str2bool,
-                        help="If True, the bash files are only created, but not scheduled.")
+                        help="If True, the bash files are only created, but not scheduled. Currently we get an error when executing the jobs using sbatch in this script. Use the run_all.sh in the job folder to run all scripts.")
     parser.add_argument('--log_dir',
                         default='/work/grudelpg/logs',
                         type=str,
@@ -171,6 +170,13 @@ def main():
         writer.writeheader()
         for line in info:
             writer.writerow(dict(zip(fieldnames, line)))
+
+    if args.only_files:
+        with open(os.path.join(jobs_directory, 'run_all.sh'), 'w'):
+            file.write("""for entry in ./*;
+do
+	sbatch ${entry}
+done""")
 
 
 if __name__ == '__main__':
