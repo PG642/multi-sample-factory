@@ -173,10 +173,7 @@ def main():
 
     if args.only_files:
         with open(os.path.join(jobs_directory, 'run_all.sh'), 'w'):
-            file.write("""for entry in ./*;
-do
-	sbatch ${entry}
-done""")
+            file.write("for entry in ./*;\ndo\n   sbatch ${entry}\ndone")
 
 
 if __name__ == '__main__':
