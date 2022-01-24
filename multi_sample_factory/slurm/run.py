@@ -110,7 +110,7 @@ def main():
                 else:
                     bash_script = bash_script + " --{0}={1}".format(parameter, value)
             # Add experiment and env
-            bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir=train_dir=/work/grudelpg/Trainingsergebnisse/{3}".format(grid.env, full_job_name, args.time_limit*60, grid.name)
+            bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir=/work/grudelpg/Trainingsergebnisse/{3}".format(grid.env, full_job_name, args.time_limit*60, grid.name)
 
             # Write the file
             file_path = os.path.join(directory, '{0}.sh'.format(full_job_name))
