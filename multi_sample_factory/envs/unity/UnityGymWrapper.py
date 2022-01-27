@@ -252,7 +252,5 @@ class UnityToGymWrapper(gym.Env):
 
     @property
     def observation_space(self) -> Union[dict, Space]:
-        if len(self._observation_space) == 1:
-            return list(self._observation_space.values())[0]
         return self._observation_space
         
