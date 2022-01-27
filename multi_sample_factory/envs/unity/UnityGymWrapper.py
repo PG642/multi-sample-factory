@@ -97,11 +97,10 @@ class UnityToGymWrapper(gym.Env):
                 self._action_space[name].seed(action_space_seed)
 
         # Set observation space for each behaviour
-        self._observation_space = {}
+        self._observation_space = None
         for name in self.behaviour_names:
             high = np.array([np.inf] * self._get_observation_size(name))
-            self._observation_space[name] = spaces.Box(-high, high, dtype=np.float32)
-        self._observation_space = list(self._observation_space)[0][1]
+            self._observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         """Reset the state of the environment and return an initial observation.
