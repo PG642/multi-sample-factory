@@ -55,7 +55,7 @@ class UnityToGymWrapper(gym.Env):
         # Save the step result from the last time all Agents requested decisions.
         self.num_agents = 0
         self._previous_decision_steps = {}
-        print("Reset", self._env.reset())
+        print("Reset", self._env.reset(), flush = True)
         for name in self.behaviour_names:
             decision_steps, _ = self._env.get_steps(name)
             self._previous_decision_steps[name] = decision_steps
