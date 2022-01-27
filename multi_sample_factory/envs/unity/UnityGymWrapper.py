@@ -55,7 +55,7 @@ class UnityToGymWrapper(gym.Env):
         # Save the step result from the last time all Agents requested decisions.
         self.num_agents = 0
         self._previous_decision_steps = {}
-        self._env.reset()
+        print("Reset", self._env.reset())
         for name in self.behaviour_names:
             decision_steps, _ = self._env.get_steps(name)
             self._previous_decision_steps[name] = decision_steps
@@ -83,24 +83,24 @@ class UnityToGymWrapper(gym.Env):
 
             if discrete_action_space is not None:
                 if continuous_action_space is not None:
-                    self._action_space = spaces.Tuple((discrete_action_space, continuous_action_space))
+                    self._action_space[name] = spaces.Tuple((discrete_action_space, continuous_action_space))
                 else:
-                    self._action_space = discrete_action_space
+                    self._action_space[name] = discrete_action_space
             elif continuous_action_space is not None:
-                self._action_space= continuous_action_space
+                self._action_space[name] = continuous_action_space
             else:
                 raise UnityGymException(
                     "The action space is neither discrete nor continuous."
                 )
 
             if action_space_seed is not None:
-                self._action_space.seed(action_space_seed)
+                self._action_space[name].seed(action_space_seed)
 
         # Set observation space for each behaviour
-        self._observation_space = None
+        self._observation_space = {}
         for name in self.behaviour_names:
             high = np.array([np.inf] * self._get_observation_size(name))
-            self._observation_space = spaces.Box(-high, high, dtype=np.float32)
+            self._observation_space[name] = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         """Reset the state of the environment and return an initial observation.
@@ -246,9 +246,13 @@ class UnityToGymWrapper(gym.Env):
 
     @property
     def action_space(self) -> Union[dict, Space]:
+        if len(self._action_space) == 1:
+            return list(self._action_space.values())[0]
         return self._action_space
 
     @property
     def observation_space(self) -> Union[dict, Space]:
+        if len(self._observation_space) == 1:
+            return list(self._observation_space.values())[0]
         return self._observation_space
         
