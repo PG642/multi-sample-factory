@@ -83,18 +83,18 @@ class UnityToGymWrapper(gym.Env):
 
             if discrete_action_space is not None:
                 if continuous_action_space is not None:
-                    self._action_space[name] = spaces.Tuple((discrete_action_space, continuous_action_space))
+                    self._action_space = spaces.Tuple((discrete_action_space, continuous_action_space))
                 else:
-                    self._action_space[name] = discrete_action_space
+                    self._action_space = discrete_action_space
             elif continuous_action_space is not None:
-                self._action_space[name] = continuous_action_space
+                self._action_space= continuous_action_space
             else:
                 raise UnityGymException(
                     "The action space is neither discrete nor continuous."
                 )
 
             if action_space_seed is not None:
-                self._action_space[name].seed(action_space_seed)
+                self._action_space.seed(action_space_seed)
 
         # Set observation space for each behaviour
         self._observation_space = None
@@ -246,8 +246,6 @@ class UnityToGymWrapper(gym.Env):
 
     @property
     def action_space(self) -> Union[dict, Space]:
-        if len(self._action_space) == 1:
-            return list(self._action_space.values())[0]
         return self._action_space
 
     @property
