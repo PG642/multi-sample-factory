@@ -1386,5 +1386,5 @@ class LearnerWorker:
     def join(self):
         join_or_kill(self.process)
 
-    def get_rank():
+    def get_rank(self):
         return int(os.environ['SLURM_PROCID'])
