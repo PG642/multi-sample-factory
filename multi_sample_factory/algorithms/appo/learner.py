@@ -18,7 +18,7 @@ from torch.multiprocessing import Process, Event as MultiprocessingEvent
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 

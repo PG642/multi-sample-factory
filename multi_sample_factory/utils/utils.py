@@ -1,6 +1,7 @@
 """Utilities."""
 
 import argparse
+import getpass
 import importlib
 import logging
 import operator
@@ -332,7 +333,10 @@ def remove_if_exists(file):
 
 
 def get_username():
-    return pwd.getpwuid(os.getuid()).pw_name
+    if os.name == 'nt':
+        return getpass.getuser()
+    else:
+        return pwd.getpwuid(os.getuid()).pw_name
 
 
 def project_tmp_dir():
