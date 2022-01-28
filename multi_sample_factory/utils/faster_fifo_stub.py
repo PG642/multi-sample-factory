@@ -63,3 +63,6 @@ class Queue:
 
     def cancel_join_thread(self):
         self.q.cancel_join_thread()
+
+    def put_many_nowait(self, max_messages_to_get=int(1e9)):
+        return self.put_many(block=False, max_messages_to_get=max_messages_to_get)
