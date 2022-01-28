@@ -31,7 +31,7 @@ def unity_env_by_name(full_env_name):
 def make_unity_env(full_env_name, cfg, env_config=None):
     unity_spec = unity_env_by_name(full_env_name)
     rand = random.SystemRandom().randint(-2147483648, 2147483647)
-    exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name)
+    exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name) + '.exe'
     engineConfigChannel = EngineConfigurationChannel()
     if env_config is not None:
         unity_env = UnityEnvironment(file_name=exec_path,
