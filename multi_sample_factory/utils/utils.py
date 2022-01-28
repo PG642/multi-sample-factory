@@ -355,7 +355,7 @@ def experiment_dir(cfg):
     try:
         experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
     except KeyError:
-        ensure_dir_exists(cfg.train_dir)
+        experiment = cfg.experiment
     experiments_root = cfg.experiments_root
 
     if experiments_root is None:
