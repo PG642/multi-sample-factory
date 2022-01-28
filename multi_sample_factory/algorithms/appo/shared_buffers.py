@@ -1,8 +1,11 @@
 import contextlib
 import math
+import os
 from typing import Optional, List
-
-import faster_fifo
+if os.name != 'nt':
+    import faster_fifo
+else:
+    import multi_sample_factory.utils.faster_fifo_stub as faster_fifo
 import numpy as np
 import torch
 from gym import spaces
