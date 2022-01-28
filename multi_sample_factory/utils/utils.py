@@ -345,16 +345,16 @@ def project_tmp_dir():
 
 
 def experiments_dir(cfg):
-    if os.environ['SLURM_PROCID'] is not None:
+    try:
         return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
-    else:
+    except KeyError:
         return ensure_dir_exists(cfg.train_dir)
 
 
 def experiment_dir(cfg):
-    if os.environ['SLURM_PROCID'] is not None:
+    try:
         experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
-    else:
+    except KeyError:
         ensure_dir_exists(cfg.train_dir)
     experiments_root = cfg.experiments_root
 

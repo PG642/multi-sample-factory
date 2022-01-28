@@ -1029,13 +1029,13 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        if os.getenv('MYHOSTLIST') is not None:
+        try:
             host_list = os.getenv('MYHOSTLIST').split(",")
             master_addr = host_list[0].split("*", 1)[0]
             master_port = 29500
             world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
             rank = int(os.environ['SLURM_PROCID'])
-        else:
+        except KeyError:
             master_addr = "localhost"
             master_port = 29500
             world_size = 1
