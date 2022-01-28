@@ -56,7 +56,6 @@ class UnityToGymWrapper(gym.Env):
         self.num_agents = 0
         self._previous_decision_steps = {}
         self._env.reset()
-        print(self.reset(), flush=True)
         for name in self.behaviour_names:
             decision_steps, _ = self._env.get_steps(name)
             self._previous_decision_steps[name] = decision_steps
