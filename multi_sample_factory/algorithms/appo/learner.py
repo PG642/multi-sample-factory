@@ -1275,7 +1275,11 @@ class LearnerWorker:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
-            psutil.Process().nice(self.cfg.default_niceness)
+            if os.name == 'nt':
+                niceness = psutil.HIGH_PRIORITY_CLASS
+            else:
+                niceness = self.cfg.default_niceness
+            psutil.Process().nice(niceness)
         except psutil.AccessDenied:
             log.error('Low niceness requires sudo!')
 
