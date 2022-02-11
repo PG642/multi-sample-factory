@@ -857,8 +857,15 @@ class LearnerWorker:
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
                             p.grad = None
-
-                    loss.backward()
+                    try:
+                        loss.backward()
+                    except RuntimeError as runtime_error:
+                        if "Connection closed by peer" in str(runtime_error):
+                            # DDP could not synchronize with other nodes. This occurs, when training has a time limit at the end of the trainig
+                            # We just return None until this node is at the end, too
+                            return None
+                        else:
+                            raise
 
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
