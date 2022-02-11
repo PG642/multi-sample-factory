@@ -217,6 +217,7 @@ class LearnerWorker:
 
         self.device = None
         self.actor_critic = None
+        self.module = None
         self.aux_loss_module = None
         self.optimizer = None
         self.policy_lock = policy_lock
@@ -653,7 +654,7 @@ class LearnerWorker:
 
     def _prepare_observations(self, obs_tensors, gpu_buffer_obs):
         for d, gpu_d, k, v, _ in iter_dicts_recursively(obs_tensors, gpu_buffer_obs):
-            device, dtype = self.actor_critic.module.device_and_type_for_input_tensor(k)
+            device, dtype = self.module.device_and_type_for_input_tensor(k)
             tensor = v.detach().to(device, copy=True).type(dtype)
             gpu_d[k] = tensor
 
@@ -814,7 +815,7 @@ class LearnerWorker:
                 with timing.add_time('losses'):
                     policy_loss = self._policy_loss(ratio, adv, clip_ratio_low, clip_ratio_high, valids)
                     exploration_loss = self.exploration_loss_func(action_distribution, valids)
-                    kl_loss = self.kl_loss_func(self.actor_critic.module.action_space, mb.action_logits, action_distribution, valids)
+                    kl_loss = self.kl_loss_func(self.module.action_space, mb.action_logits, action_distribution, valids)
 
                     actor_loss = policy_loss + exploration_loss + kl_loss
                     epoch_actor_losses.append(actor_loss.item())
@@ -944,7 +945,7 @@ class LearnerWorker:
 
             # calculate KL-divergence with the behaviour policy action distribution
             old_action_distribution = get_action_distribution(
-                self.actor_critic.module.action_space, var.mb.action_logits,
+                self.module.action_space, var.mb.action_logits,
             )
             kl_old = var.action_distribution.kl_divergence(old_action_distribution)
             kl_old_mean = kl_old.mean()
@@ -1052,7 +1053,13 @@ class LearnerWorker:
         )
         
         model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing).to(0)
-        self.actor_critic = DDP(model)
+        if world_size == 1:
+            self.actor_critic = model
+            self.module = self.actor_critic
+        else:
+            self.actor_critic = DDP(model)
+            self.module = self.actor_critic.module
+
         #self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
