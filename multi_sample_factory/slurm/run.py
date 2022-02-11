@@ -1,3 +1,12 @@
+"""
+Execute with: python -m multi_sample_factory.slurm.run --grid=performance_grid --time_limit=30
+
+To cancel all jobs (Don't forget to replace the name):
+for entry in `squeue -u smkoramt | awk '{print $1}' | tail -n +2`;
+do
+	scancel ${entry}
+done
+"""
 import argparse
 import csv
 import importlib
