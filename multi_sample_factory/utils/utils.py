@@ -314,9 +314,7 @@ def set_process_cpu_affinity(worker_idx, num_workers):
 # working with filesystem
 
 def ensure_dir_exists(path):
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
-    return path
+    return safe_ensure_dir_exists(path)
 
 
 def safe_ensure_dir_exists(path):
