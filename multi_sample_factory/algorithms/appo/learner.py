@@ -1,3 +1,4 @@
+import platform
 from typing import Tuple
 import glob
 import os
@@ -18,7 +19,7 @@ from torch.multiprocessing import Process, Event as MultiprocessingEvent
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 
@@ -1029,11 +1030,19 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        host_list = os.getenv('MYHOSTLIST').split(",")
-        master_addr = host_list[0].split("*", 1)[0]
-        master_port = 29500
-        world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
-        rank = int(os.environ['SLURM_PROCID'])
+        hostlist = os.getenv('MYHOSTLIST')
+        if hostlist is not None:
+            hostlist = hostlist.split(",")
+            master_addr = hostlist[0].split("*", 1)[0]
+            master_port = 29500
+            world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+            rank = int(os.environ['SLURM_PROCID'])
+        else:
+            master_addr = "localhost"
+            master_port = 29500
+            world_size = 1
+            rank = 0
+
 
         store = torch.distributed.TCPStore (
             master_addr,
@@ -1274,7 +1283,11 @@ class LearnerWorker:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
-            psutil.Process().nice(self.cfg.default_niceness)
+            if os.name == 'nt':
+                niceness = psutil.HIGH_PRIORITY_CLASS
+            else:
+                niceness = self.cfg.default_niceness
+            psutil.Process().nice(niceness)
         except psutil.AccessDenied:
             log.error('Low niceness requires sudo!')
 
@@ -1380,5 +1393,5 @@ class LearnerWorker:
     def join(self):
         join_or_kill(self.process)
 
-    def get_rank():
+    def get_rank(self):
         return int(os.environ['SLURM_PROCID'])

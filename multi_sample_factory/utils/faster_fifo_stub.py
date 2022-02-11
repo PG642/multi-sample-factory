@@ -4,7 +4,7 @@ Can be useful on platforms where faster-fifo does not work, e.g. Windows.
 """
 
 import multiprocessing
-from queue import Empty
+from queue import Empty, Full
 
 
 class Queue:
@@ -63,3 +63,67 @@ class Queue:
 
     def cancel_join_thread(self):
         self.q.cancel_join_thread()
+
+    # def put_many(self, xs, block=True, timeout=DEFAULT_TIMEOUT):
+    #     assert isinstance(xs, (list, tuple))
+    #     xs = [_ForkingPickler.dumps(ele).tobytes() for ele in xs]
+    #
+    #     _len = len
+    #     msgs_buf = (c_size_t * _len(xs))()
+    #     size_buf = (c_size_t * _len(xs))()
+    #
+    #     for i, ele in enumerate(xs):
+    #         msgs_buf[i] = bytes_to_ptr(ele)
+    #         size_buf[i] = _len(ele)
+    #
+    #     # explicitly convert all function parameters to corresponding C-types
+    #     cdef
+    #     void * c_q_addr = < void * > q_addr(self)
+    #     cdef
+    #     void * c_buf_addr = < void * > buf_addr(self)
+    #
+    #     cdef
+    #     const
+    #     void ** c_msgs_buf_addr = < const
+    #     void ** > caddr(msgs_buf)
+    #     cdef
+    #     const
+    #     size_t * c_size_buff_addr = < const
+    #     size_t * > caddr(size_buf)
+    #
+    #     cdef
+    #     size_t
+    #     c_len_x = _len(xs)
+    #     cdef
+    #     int
+    #     c_block = block
+    #     cdef
+    #     float
+    #     c_timeout = timeout
+    #
+    #     cdef
+    #     int
+    #     c_status = 0
+    #
+    #     with nogil:
+    #         c_status = Q.queue_put(
+    #             c_q_addr, c_buf_addr, c_msgs_buf_addr, c_size_buff_addr, c_len_x,
+    #             c_block, c_timeout,
+    #         )
+    #
+    #     status = c_status
+    #
+    #     if status == Q.Q_SUCCESS:
+    #         pass
+    #     elif status == Q.Q_FULL:
+    #         raise Full()
+    #     else:
+    #         raise Exception(f'Unexpected queue error {status}')
+
+    def put_many(self, x, block=True, timeout=float(1e3)):
+        assert isinstance(x, (list, tuple))
+        for message in x:
+            self.q.put(message, block, timeout)
+
+    def put_many_nowait(self, x, timeout=float(1e3)):
+        return self.put_many(x, block=False, timeout=timeout)
