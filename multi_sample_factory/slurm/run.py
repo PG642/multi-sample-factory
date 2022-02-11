@@ -182,7 +182,7 @@ def main():
 
     if args.only_files:
         with open(os.path.join(jobs_directory, 'run_all.sh'), 'w') as run_all_file:
-            run_all_file.write("#!/bin/sh\nfor entry in ./*;\ndo\n   sbatch ${entry}\ndone")
+            run_all_file.write("#!/bin/sh\nfor entry in ./{0}*;\ndo\n   sbatch ${entry}\ndone".format(grid.name))
 
 
 if __name__ == '__main__':
