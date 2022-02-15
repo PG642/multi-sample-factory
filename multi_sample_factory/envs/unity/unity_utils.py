@@ -33,6 +33,9 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     rand = random.SystemRandom().randint(-2147483648, 2147483647)
     exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name)
     engineConfigChannel = EngineConfigurationChannel()
+    # TODO Add environment parameter channel here for environment parameters (https://github.com/Unity-Technologies/ml-agents/blob/main/ml-agents-envs/mlagents_envs/side_channel/environment_parameters_channel.py)
+    # Envirnment parameters currently exist only for the goalkeeper scenario
+    # We should add a dict of env parameters for each environment, which is registered
     if env_config is not None:
         unity_env = UnityEnvironment(file_name=exec_path,
                                      side_channels=[engineConfigChannel],
