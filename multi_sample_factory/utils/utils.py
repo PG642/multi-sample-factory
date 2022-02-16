@@ -169,10 +169,10 @@ def str2dict(string: str) -> Dict[str, float]:
         for key_value_pair in key_value_pairs:
             splitted_key_value_pair = key_value_pair.split(":")
             key = splitted_key_value_pair[0]
-            value = float(splitted_key_value_pair[0])
+            value = float(splitted_key_value_pair[1])
             dictionary[key] = value
-    except IndexError:
-        raise argparse.ArgumentTypeError("String '{0}' could not be parsed to a dictionary.".format(string))
+    except IndexError as error:
+        raise argparse.ArgumentTypeError("String '{0}' could not be parsed to a dictionary.".format(string)) from error
     return dictionary
 
 
