@@ -54,9 +54,9 @@ def make_unity_env(full_env_name, cfg, env_config=None):
                                      worker_id=0,
                                      seed=rand)
     engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
-    for key, value in cfg.env_params:
+    for key, value in cfg.env_params.items():
         if key in unity_spec.env_parameters:
-            env_parameter_channel.set_foat_parameter(key=key, value=value)
+            env_parameter_channel.set_float_parameter(key=key, value=value)
         else:
             raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
                              "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
