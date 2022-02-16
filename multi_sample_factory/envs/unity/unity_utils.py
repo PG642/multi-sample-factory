@@ -1,22 +1,28 @@
 from random import random
+from typing import List
+
 from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
+from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel, EnvironmentParametersChannel
 from os.path import join
 import random
 
 
 class UnitySpec:
-    def __init__(self, full_env_name, exec_file_name):
+    def __init__(self, full_env_name, exec_file_name, env_parameters: List[str]):
         self.full_env_name = full_env_name
         self.exec_file_name = exec_file_name
+        self.env_parameters= env_parameters
 
 
 UNITY_ENVS = [
-    UnitySpec('unity_saving_training_continuous', 'saving_training_continuous'),
-    UnitySpec('unity_saving_training_discrete', 'saving_training_discrete'),
-    UnitySpec('unity_saving_training_mixed', 'saving_training_mixed'),
-    UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete')
+    UnitySpec('unity_saving_training_continuous', 'saving_training_continuous', []),
+    UnitySpec('unity_saving_training_discrete',
+              'saving_training_discrete',
+              ["seed", "difficulty", "initialBoost", "canDoubleJump", "canDrift", "canBoost", "useSuspension", "useBulletImpulse",
+               "usePsyonixImpulse", "useCustomBounce", "useWallStabilization", "useGroundStabilization"]),
+    UnitySpec('unity_saving_training_mixed', 'saving_training_mixed', []),
+    UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', [])
     # You can add more unity environments here if needed.
 ]
 
@@ -33,9 +39,10 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     rand = random.SystemRandom().randint(-2147483648, 2147483647)
     exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name)
     engineConfigChannel = EngineConfigurationChannel()
+    env_parameter_channel = EnvironmentParametersChannel()
     if env_config is not None:
         unity_env = UnityEnvironment(file_name=exec_path,
-                                     side_channels=[engineConfigChannel],
+                                     side_channels=[engineConfigChannel, env_parameter_channel],
                                      worker_id=env_config.env_id,
                                      seed=rand)
 
@@ -46,5 +53,11 @@ def make_unity_env(full_env_name, cfg, env_config=None):
                                      worker_id=0,
                                      seed=rand)
     engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
+    for key, value in cfg.env_params:
+        if key in unity_spec.env_parameters:
+            env_parameter_channel.set_foat_parameter(key=key, value=value)
+        else:
+            raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
+                             "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
     env = UnityToGymWrapper(unity_env)
     return env

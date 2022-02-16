@@ -5,6 +5,8 @@ import importlib
 import logging
 import operator
 import os
+from typing import Dict
+
 if os.name != 'nt':
     import pwd
 import tempfile
@@ -17,7 +19,6 @@ from sys import platform
 import numpy as np
 import psutil
 from colorlog import ColoredFormatter
-
 
 # Logging
 
@@ -117,6 +118,7 @@ def static_vars(**kwargs):
         for k in kwargs:
             setattr(func, k, kwargs[k])
         return func
+
     return decorate
 
 
@@ -149,12 +151,28 @@ def safe_put_many(q, msgs, attempts=3, queue_name=''):
 def str2bool(v):
     if isinstance(v, bool):
         return v
-    if isinstance(v, str) and v.lower() in ('true', ):
+    if isinstance(v, str) and v.lower() in ('true',):
         return True
-    elif isinstance(v, str) and v.lower() in ('false', ):
+    elif isinstance(v, str) and v.lower() in ('false',):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected')
+
+
+def str2dict(string: str) -> Dict[str, float]:
+    dictionary = {}
+    if string.strip() == "":
+        return dictionary
+    try:
+        key_value_pairs = string.split(",")
+        for key_value_pair in key_value_pairs:
+            splitted_key_value_pair = key_value_pair.split(":")
+            key = splitted_key_value_pair[0]
+            value = float(splitted_key_value_pair[0])
+            dictionary[key] = value
+    except IndexError:
+        raise argparse.ArgumentTypeError("String '{0}' could not be parsed to a dictionary.".format(string))
+    return dictionary
 
 
 # numpy stuff
@@ -341,11 +359,11 @@ def project_tmp_dir():
 
 
 def experiments_dir(cfg):
-    return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
+    return ensure_dir_exists(cfg.train_dir + "_" + os.environ['SLURM_PROCID'])
 
 
 def experiment_dir(cfg):
-    experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
+    experiment = cfg.experiment + "_" + os.environ['SLURM_PROCID']
     experiments_root = cfg.experiments_root
 
     if experiments_root is None:
@@ -400,7 +418,8 @@ def get_git_commit_hash():
     if git_root_dir:
         try:
             git_hash = check_output(['git', 'rev-parse', 'HEAD'], cwd=git_root_dir, timeout=1).strip().decode('ascii')
-            git_repo_name = check_output(['git', 'config', '--get', 'remote.origin.url'], cwd=git_root_dir, timeout=1).strip().decode('ascii')
+            git_repo_name = check_output(['git', 'config', '--get', 'remote.origin.url'], cwd=git_root_dir,
+                                         timeout=1).strip().decode('ascii')
         except SubprocessError:
             log.debug('Could not query the git revision for the logs, perhaps git is not available')
 
