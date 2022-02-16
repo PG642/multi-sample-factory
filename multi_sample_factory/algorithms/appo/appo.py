@@ -436,11 +436,17 @@ class APPO(ReinforcementLearningAlgorithm):
                 self.report_queue, policy_worker_queues[policy_id], self.traj_buffers,
                 policy_locks[policy_id], resume_experience_collection_cv[policy_id],
             )
+            log.debug('Learner worker %s object initialized.', learner_idx)
             learner_worker.start_process()
+            log.debug('Learner worker %s process started.', learner_idx)
             learner_worker.init()
+            log.debug('Learner worker %s init finished.', learner_idx)
 
             self.learner_workers[policy_id] = learner_worker
             learner_idx += 1
+
+        for policy_id in range(self.cfg.num_policies):
+            self.learner_workers[policy_id].initialized_event.wait()
 
         log.info('Initializing policy workers...')
         for policy_id in range(self.cfg.num_policies):

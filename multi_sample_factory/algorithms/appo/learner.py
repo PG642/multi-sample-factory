@@ -1037,18 +1037,31 @@ class LearnerWorker:
         log.info('Loaded experiment state at training iteration %d, env step %d', self.train_step, self.env_steps)
 
     def init_model(self, timing):
-        hostlist = os.getenv('MYHOSTLIST')
-        if hostlist is not None:
-            hostlist = hostlist.split(",")
-            master_addr = hostlist[0].split("*", 1)[0]
-            master_port = 29500
-            world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
-            rank = int(os.environ['SLURM_PROCID'])
+        host_list = os.getenv('MYHOSTLIST').split(",")
+        if host_list is not None:
+            master_addr = host_list[0].split("*", 1)[0]
+            backend = "gloo"
+            default_master_port = 29500
+            if self.cfg.with_pbt:
+                master_port = default_master_port + self.policy_id
+                world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+                rank = int(os.environ['SLURM_PROCID'])
+            else:
+                # TODO Test this
+                # This should disable the ability to train the same policy without PBT in parallel,
+                # but should give us the ability to use multiple GPUS per node.
+                # In this case it is okay, that e.g. policy 0 and policy 1 can be mixed in environments by the policy manager
+                # (giving the impression of different policies training against each other), because torch's DDP ensures
+                # that both policies are actually the same.
+                master_port = default_master_port
+                world_size = int(os.environ['SLURM_JOB_NUM_NODES']) * self.cfg.num_policies
+                rank = self.cfg.num_policies * int(os.environ['SLURM_PROCID']) + self.policy_id
         else:
             master_addr = "localhost"
             master_port = 29500
             world_size = 1
             rank = 0
+
 
 
         store = torch.distributed.TCPStore (
@@ -1057,8 +1070,6 @@ class LearnerWorker:
             world_size,
             rank == 0,
         )
-
-        backend="gloo"
 
         # processing group
         torch.distributed.init_process_group (
@@ -1084,6 +1095,14 @@ class LearnerWorker:
 
         if self.aux_loss_module is not None:
             self.aux_loss_module.to(device=self.device)
+
+        if rank == 0:
+            log.info('Initialized torch.DDP master node with address %s at port %s, using %s different nodes.',
+                     master_addr,
+                     master_port,
+                     world_size)
+        else:
+            log.debug('Initialized model on node %s.', rank)
 
     def load_from_checkpoint(self, policy_id):
         checkpoints = self.get_checkpoints(self.checkpoint_dir(self.cfg, policy_id))
@@ -1378,7 +1397,7 @@ class LearnerWorker:
 
     def init(self):
         self.task_queue.put((TaskType.INIT, None))
-        self.initialized_event.wait()
+        #self.initialized_event.wait()
 
     def save_model(self, timeout=None):
         #if(self.rank != 0):
