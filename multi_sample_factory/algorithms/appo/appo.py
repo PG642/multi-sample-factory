@@ -41,7 +41,7 @@ from multi_sample_factory.utils.utils import summaries_dir, experiment_dir, log,
 from multi_sample_factory.algorithms.utils.action_distributions import transform_action_space
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
     # noinspection PyUnresolvedReferences

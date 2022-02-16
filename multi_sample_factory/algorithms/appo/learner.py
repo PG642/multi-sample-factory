@@ -1,3 +1,4 @@
+import platform
 from typing import Tuple
 import glob
 import os
@@ -18,7 +19,7 @@ from torch.multiprocessing import Process, Event as MultiprocessingEvent
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
-    from multi_sample_factory.utils import Queue as MpQueue
+    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 
@@ -217,6 +218,7 @@ class LearnerWorker:
 
         self.device = None
         self.actor_critic = None
+        self.module = None
         self.aux_loss_module = None
         self.optimizer = None
         self.policy_lock = policy_lock
@@ -653,7 +655,7 @@ class LearnerWorker:
 
     def _prepare_observations(self, obs_tensors, gpu_buffer_obs):
         for d, gpu_d, k, v, _ in iter_dicts_recursively(obs_tensors, gpu_buffer_obs):
-            device, dtype = self.actor_critic.module.device_and_type_for_input_tensor(k)
+            device, dtype = self.module.device_and_type_for_input_tensor(k)
             tensor = v.detach().to(device, copy=True).type(dtype)
             gpu_d[k] = tensor
 
@@ -814,7 +816,7 @@ class LearnerWorker:
                 with timing.add_time('losses'):
                     policy_loss = self._policy_loss(ratio, adv, clip_ratio_low, clip_ratio_high, valids)
                     exploration_loss = self.exploration_loss_func(action_distribution, valids)
-                    kl_loss = self.kl_loss_func(self.actor_critic.module.action_space, mb.action_logits, action_distribution, valids)
+                    kl_loss = self.kl_loss_func(self.module.action_space, mb.action_logits, action_distribution, valids)
 
                     actor_loss = policy_loss + exploration_loss + kl_loss
                     epoch_actor_losses.append(actor_loss.item())
@@ -855,8 +857,15 @@ class LearnerWorker:
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
                             p.grad = None
-
-                    loss.backward()
+                    try:
+                        loss.backward()
+                    except RuntimeError as runtime_error:
+                        if "Connection closed by peer" in str(runtime_error):
+                            # DDP could not synchronize with other nodes. This occurs, when training has a time limit at the end of the trainig
+                            # We just return None until this node is at the end, too
+                            return None
+                        else:
+                            raise
 
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
@@ -944,7 +953,7 @@ class LearnerWorker:
 
             # calculate KL-divergence with the behaviour policy action distribution
             old_action_distribution = get_action_distribution(
-                self.actor_critic.module.action_space, var.mb.action_logits,
+                self.module.action_space, var.mb.action_logits,
             )
             kl_old = var.action_distribution.kl_divergence(old_action_distribution)
             kl_old_mean = kl_old.mean()
@@ -1029,23 +1038,30 @@ class LearnerWorker:
 
     def init_model(self, timing):
         host_list = os.getenv('MYHOSTLIST').split(",")
-        master_addr = host_list[0].split("*", 1)[0]
-        backend = "gloo"
-        default_master_port = 29500
-        if self.cfg.with_pbt:
-            master_port = default_master_port + self.policy_id
-            world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
-            rank = int(os.environ['SLURM_PROCID'])
+        if host_list is not None:
+            master_addr = host_list[0].split("*", 1)[0]
+            backend = "gloo"
+            default_master_port = 29500
+            if self.cfg.with_pbt:
+                master_port = default_master_port + self.policy_id
+                world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+                rank = int(os.environ['SLURM_PROCID'])
+            else:
+                # TODO Test this
+                # This should disable the ability to train the same policy without PBT in parallel,
+                # but should give us the ability to use multiple GPUS per node.
+                # In this case it is okay, that e.g. policy 0 and policy 1 can be mixed in environments by the policy manager
+                # (giving the impression of different policies training against each other), because torch's DDP ensures
+                # that both policies are actually the same.
+                master_port = default_master_port
+                world_size = int(os.environ['SLURM_JOB_NUM_NODES']) * self.cfg.num_policies
+                rank = self.cfg.num_policies * int(os.environ['SLURM_PROCID']) + self.policy_id
         else:
-            # TODO Test this
-            # This should disable the ability to train the same policy without PBT in parallel,
-            # but should give us the ability to use multiple GPUS per node.
-            # In this case it is okay, that e.g. policy 0 and policy 1 can be mixed in environments by the policy manager
-            # (giving the impression of different policies training against each other), because torch's DDP ensures
-            # that both policies are actually the same.
-            master_port = default_master_port
-            world_size = int(os.environ['SLURM_JOB_NUM_NODES']) * self.cfg.num_policies
-            rank = self.cfg.num_policies * int(os.environ['SLURM_PROCID']) + self.policy_id
+            master_addr = "localhost"
+            master_port = 29500
+            world_size = 1
+            rank = 0
+
 
 
         store = torch.distributed.TCPStore (
@@ -1064,7 +1080,13 @@ class LearnerWorker:
         )
         
         model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing).to(0)
-        self.actor_critic = DDP(model)
+        if world_size == 1:
+            self.actor_critic = model
+            self.module = self.actor_critic
+        else:
+            self.actor_critic = DDP(model)
+            self.module = self.actor_critic.module
+
         #self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
@@ -1287,7 +1309,11 @@ class LearnerWorker:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
-            psutil.Process().nice(self.cfg.default_niceness)
+            if os.name == 'nt':
+                niceness = psutil.HIGH_PRIORITY_CLASS
+            else:
+                niceness = self.cfg.default_niceness
+            psutil.Process().nice(niceness)
         except psutil.AccessDenied:
             log.error('Low niceness requires sudo!')
 
@@ -1393,5 +1419,5 @@ class LearnerWorker:
     def join(self):
         join_or_kill(self.process)
 
-    def get_rank():
+    def get_rank(self):
         return int(os.environ['SLURM_PROCID'])

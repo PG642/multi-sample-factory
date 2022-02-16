@@ -1,6 +1,7 @@
 """Utilities."""
 
 import argparse
+import getpass
 import importlib
 import logging
 import operator
@@ -314,7 +315,10 @@ def set_process_cpu_affinity(worker_idx, num_workers):
 
 def ensure_dir_exists(path):
     if not os.path.exists(path):
-        os.makedirs(path)
+        try:
+            os.makedirs(path, exist_ok=True)
+        except FileExistsError:
+            pass
     return path
 
 
@@ -332,7 +336,10 @@ def remove_if_exists(file):
 
 
 def get_username():
-    return pwd.getpwuid(os.getuid()).pw_name
+    if os.name == 'nt':
+        return getpass.getuser()
+    else:
+        return pwd.getpwuid(os.getuid()).pw_name
 
 
 def project_tmp_dir():
@@ -341,11 +348,17 @@ def project_tmp_dir():
 
 
 def experiments_dir(cfg):
-    return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
+    try:
+        return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
+    except KeyError:
+        return ensure_dir_exists(cfg.train_dir)
 
 
 def experiment_dir(cfg):
-    experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
+    try:
+        experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
+    except KeyError:
+        experiment = cfg.experiment
     experiments_root = cfg.experiments_root
 
     if experiments_root is None:
