@@ -1,3 +1,4 @@
+from multi_sample_factory.utils.utils import str2dict
 # noinspection PyUnusedLocal
 def unity_override_defaults(env, parser):
     parser.set_defaults(
@@ -24,3 +25,5 @@ def add_unity_env_args(env, parser):
                    help='Path of the executables for the unity environments.')
     p.add_argument('--unity_time_scale', default=20.0, type=float,
                    help='Controls the Time.timeScale of unity. For more information please visit https://docs.unity3d.com/ScriptReference/Time-timeScale.html.')
+    p.add_argument('--env_params', default="", type=str2dict,
+                   help="A string formatted like a dictionary: [Key1]:[Value1],[Key2]:[Value2]. This contains the environment parameters.")
