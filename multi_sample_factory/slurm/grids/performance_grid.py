@@ -6,7 +6,7 @@ _params = {'num_policies': [1, 2],
            'N': [1,2,4,6,8,10]}
 
 _name = 'grid_performance'
-_base_parameters = '--experiment_summaries_interval=5 --decorrelate_experience_max_seconds=0 --decorrelate_envs_on_one_worker=False'
+_base_parameters = '--env_params=difficulty:14 --experiment_summaries_interval=5 --decorrelate_experience_max_seconds=0 --decorrelate_envs_on_one_worker=False'
 _env = 'unity_saving_training_discrete'
 
 GRID = Grid(name=_name, params=_params, base_parameters=_base_parameters, env=_env)
