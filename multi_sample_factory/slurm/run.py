@@ -37,6 +37,10 @@ def runner_argparser():
                         default=10,
                         type=int,
                         help='The training time for each job in minutes.')
+    parser.add_argument('--time_buffer',
+                        default=5,
+                        type=int,
+                        help='The difference between the slurm job time limit and the training time for MSF.')
     parser.add_argument('--repeat',
                         default=3,
                         type=int,
@@ -61,7 +65,6 @@ def runner_argparser():
 
 
 def parse_time_limit(time_limit: int) -> Tuple[str, str]:
-    BUFFER_AT_END_OF_TRAINING = 5
     if time_limit <= 120:
         partition = 'short'
     elif time_limit <= 480:
@@ -71,7 +74,7 @@ def parse_time_limit(time_limit: int) -> Tuple[str, str]:
     else:
         raise ValueError("Jobs longer than 48 hours can not be run on GPU nodes.")
 
-    time_str = time.strftime('%H:%M:%S', time.gmtime((time_limit - BUFFER_AT_END_OF_TRAINING)* 60))
+    time_str = time.strftime('%H:%M:%S', time.gmtime(time_limit * 60))
     return time_str, partition
 
 
@@ -163,7 +166,7 @@ def main():
                     bash_script = bash_script + " --{0}={1}".format(parameter, value)
             # Add experiment and env
             bash_script = bash_script + " --env={0} --experiment={1} --train_for_seconds={2} --train_dir={3}".format(
-                grid.env, full_job_name, args.time_limit * 60, os.path.join(args.train_dir, grid.name))
+                grid.env, full_job_name, (args.time_limit - args.time_buffer) * 60, os.path.join(args.train_dir, grid.name))
 
             # Write the file
             file_path = os.path.join(jobs_directory, '{0}.sh'.format(full_job_name))
