@@ -61,6 +61,7 @@ def runner_argparser():
 
 
 def parse_time_limit(time_limit: int) -> Tuple[str, str]:
+    BUFFER_AT_END_OF_TRAINING = 5
     if time_limit <= 120:
         partition = 'short'
     elif time_limit <= 480:
@@ -70,7 +71,7 @@ def parse_time_limit(time_limit: int) -> Tuple[str, str]:
     else:
         raise ValueError("Jobs longer than 48 hours can not be run on GPU nodes.")
 
-    time_str = time.strftime('%H:%M:%S', time.gmtime(time_limit * 60))
+    time_str = time.strftime('%H:%M:%S', time.gmtime((time_limit - BUFFER_AT_END_OF_TRAINING)* 60))
     return time_str, partition
 
 
