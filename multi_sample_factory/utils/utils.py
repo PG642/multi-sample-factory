@@ -6,6 +6,8 @@ import importlib
 import logging
 import operator
 import os
+from typing import Dict
+
 if os.name != 'nt':
     import pwd
 import tempfile
@@ -156,6 +158,22 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected')
+
+
+def str2dict(string: str) -> Dict[str, float]:
+    dictionary = {}
+    if string.strip() == "":
+        return dictionary
+    try:
+        key_value_pairs = string.split(",")
+        for key_value_pair in key_value_pairs:
+            splitted_key_value_pair = key_value_pair.split(":")
+            key = splitted_key_value_pair[0]
+            value = float(splitted_key_value_pair[1])
+            dictionary[key] = value
+    except IndexError as error:
+        raise argparse.ArgumentTypeError("String '{0}' could not be parsed to a dictionary.".format(string)) from error
+    return dictionary
 
 
 # numpy stuff
