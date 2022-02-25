@@ -16,7 +16,7 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory.slurm.grids.grid import Grid
@@ -61,10 +61,14 @@ def runner_argparser():
                         default='/work/grudelpg/logs',
                         type=str,
                         help="Directory for logs files. This path will be extended with the name of the grid.")
+    parser.add_argument('--slurm_partition',
+                        default=None,
+                        type=str,
+                        help="Optional custom slurm partition. If not specified, the partition is evaluated based on the time_limit parameter, resulting in either short, med or long.")
     return parser
 
 
-def parse_time_limit(time_limit: int) -> Tuple[str, str]:
+def parse_time_limit(time_limit: int, custom_partition: Optional[str]) -> Tuple[str, str]:
     if time_limit <= 120:
         partition = 'short'
     elif time_limit <= 480:
@@ -72,7 +76,11 @@ def parse_time_limit(time_limit: int) -> Tuple[str, str]:
     elif time_limit <= 2880:
         partition = 'long'
     else:
-        raise ValueError("Jobs longer than 48 hours can not be run on GPU nodes.")
+        if custom_partition is None:
+            raise ValueError("Jobs longer than 48 hours can not be run on GPU nodes.")
+
+    if custom_partition is not None:
+        partition = custom_partition
 
     time_str = time.strftime('%H:%M:%S', time.gmtime(time_limit * 60))
     return time_str, partition
@@ -147,7 +155,7 @@ def main():
     for i, combination in enumerate(itertools.product(*params)):
         job_name = "{0}_{1:03d}".format(grid.name, i)
         info.append([job_name] + list(combination))
-        time_limit_str, partition = parse_time_limit(args.time_limit)
+        time_limit_str, partition = parse_time_limit(args.time_limit, args.slurm_partition)
         NUM_NODES_PARAM = 'N'
         if NUM_NODES_PARAM in keys:
             n = combination[keys.index(NUM_NODES_PARAM)]
