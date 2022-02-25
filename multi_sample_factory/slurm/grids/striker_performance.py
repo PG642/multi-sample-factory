@@ -39,4 +39,4 @@ _name = 'grid_striker_performance'
 _base_parameters = '--hidden_size=512 --num_envs_per_worker=8 --batch_size=8192 --experiment_summaries_interval=5'
 _env = 'unity_striker'
 
-GRID = Grid(name=_name, params=_params, base_parameters=_base_parameters, env=_env)
+GRID = Grid(name=_name, params=_params, base_parameters=_base_parameters, env=_env, setup=_setup)
