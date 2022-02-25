@@ -19,7 +19,7 @@ EXPERIMENT="{3}"
 #----------------------------------------------------------------------------------------
 #Prepare python environment
 module purge
-module load nvidia/cuda/11.1.1
+module load nvidia/cuda/11.3.1
 module load gcc/9.2.0
 module load git/2.30.2
 conda activate /work/grudelpg/envs/multi-sample-factory-pytorch-standard
