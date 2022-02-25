@@ -9,7 +9,8 @@ from multi_sample_factory.algorithms.appo.actor_worker import transform_dict_obs
 from multi_sample_factory.algorithms.appo.learner import LearnerWorker
 from multi_sample_factory.algorithms.appo.model import create_actor_critic
 from multi_sample_factory.algorithms.appo.model_utils import get_hidden_size
-from multi_sample_factory.algorithms.utils.action_distributions import ContinuousActionDistribution
+from multi_sample_factory.algorithms.utils.action_distributions import ContinuousActionDistribution, \
+    transform_action_space
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory.algorithms.utils.arguments import parse_args, load_from_checkpoint
 from multi_sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper, is_multiagent_env
@@ -42,8 +43,8 @@ def enjoy(cfg, max_num_frames=1e9):
     if hasattr(env.unwrapped, 'reset_on_init'):
         # reset call ruins the demo recording for VizDoom
         env.unwrapped.reset_on_init = False
-
-    actor_critic = create_actor_critic(cfg, env.observation_space, env.action_space)
+    action_space = transform_action_space(env.action_space)
+    actor_critic = create_actor_critic(cfg, env.observation_space, action_space)
 
     device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
     actor_critic.model_to_device(device)
