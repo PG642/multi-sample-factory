@@ -32,7 +32,7 @@ def enjoy(cfg, max_num_frames=1e9):
     def make_env_func(env_config):
         return create_env(cfg.env, cfg=cfg, env_config=env_config)
 
-    env = make_env_func(AttrDict({'worker_index': 0, 'vector_index': 0}))
+    env = make_env_func(AttrDict({'worker_index': 0, 'vector_index': 0, 'env_id': 0}))
     # env.seed(0)
 
     is_multiagent = is_multiagent_env(env)
