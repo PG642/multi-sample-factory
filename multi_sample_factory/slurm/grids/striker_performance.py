@@ -22,7 +22,7 @@ module purge
 module load nvidia/cuda/11.1.1
 module load gcc/9.2.0
 module load git/2.30.2
-conda activate /work/grudelpg/envs/multi-sample-factory-env
+conda activate /work/grudelpg/envs/multi-sample-factory-pytorch-standard
 #----------------------------------------------------------------------------------------
 #Unzip executable into job folder
 MYHOSTLIST=$( srun hostname | sort | uniq -c | awk '{{print $2 "*" $1}}' | paste -sd, )
