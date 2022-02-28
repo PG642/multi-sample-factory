@@ -24,7 +24,8 @@ UNITY_ENVS = [
                "usePsyonixImpulse", "useCustomBounce", "useWallStabilization", "useGroundStabilization"]),
     UnitySpec('unity_saving_training_mixed', 'saving_training_mixed', []),
     UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', []),
-    UnitySpec('unity_striker', 'striker', [])
+    UnitySpec('unity_striker', 'striker', []),
+    UnitySepc('unity_1v1', '1v1', [])
     # You can add more unity environments here if needed.
 ]
 
