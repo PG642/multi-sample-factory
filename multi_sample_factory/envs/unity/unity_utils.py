@@ -26,7 +26,8 @@ UNITY_ENVS = [
     UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', []),
     UnitySpec('unity_striker', 'striker', []),
     UnitySpec('unity_multi_agent_env', 'multi_agent_env', []),
-    UnitySpec('unity_1v1', "1v1", [])
+    UnitySpec('unity_1v1', "1v1", []),
+    UnitySpec("unity_1v1alternativeVerteiltesLernen", "1v1alternativeVerteiltesLernen", []),
     # You can add more unity environments here if needed
 ]
 
