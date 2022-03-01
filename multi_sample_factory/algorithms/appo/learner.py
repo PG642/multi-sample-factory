@@ -1,4 +1,3 @@
-import platform
 from typing import Tuple
 import glob
 import os
@@ -19,7 +18,7 @@ from torch.multiprocessing import Process, Event as MultiprocessingEvent
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 if os.name == 'nt':
-    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
+    from multi_sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 
@@ -218,7 +217,6 @@ class LearnerWorker:
 
         self.device = None
         self.actor_critic = None
-        self.module = None
         self.aux_loss_module = None
         self.optimizer = None
         self.policy_lock = policy_lock
@@ -252,9 +250,9 @@ class LearnerWorker:
         self.train_step = self.env_steps = 0
 
         # decay rate at which summaries are collected
-        # save summaries every 5 seconds in the beginning, but decay to every 4 minutes in the limit, because we
+        # save summaries every 20 seconds in the beginning, but decay to every 4 minutes in the limit, because we
         # do not need frequent summaries for longer experiments
-        self.summary_rate_decay_seconds = LinearDecay([(0, 5), (100000, 120), (1000000, 240)])
+        self.summary_rate_decay_seconds = LinearDecay([(0, 20), (100000, 120), (1000000, 240)])
         self.last_summary_time = 0
 
         self.last_saved_time = self.last_milestone_time = 0
@@ -269,9 +267,7 @@ class LearnerWorker:
             raise NotImplementedError('KL-divergence exploration loss is not supported with '
                                       'continuous action spaces. Use entropy exploration loss')
 
-            # deferred initialization
-            self.exploration_loss_func = None
-            self.kl_loss_func = None
+        self.exploration_loss_func = None  # deferred initialization
 
     def start_process(self):
         self.process.start()
@@ -293,22 +289,11 @@ class LearnerWorker:
         if self.cfg.exploration_loss_coeff == 0.0:
             self.exploration_loss_func = lambda action_distr, valids: 0.0
         elif self.cfg.exploration_loss == 'entropy':
-            self.exploration_loss_func = self._entropy_exploration_loss
+            self.exploration_loss_func = self.entropy_exploration_loss
         elif self.cfg.exploration_loss == 'symmetric_kl':
-            self.exploration_loss_func = self._symmetric_kl_exploration_loss
+            self.exploration_loss_func = self.symmetric_kl_exploration_loss
         else:
             raise NotImplementedError(f'{self.cfg.exploration_loss} not supported!')
-
-        if self.cfg.kl_loss_coeff == 0.0:
-            if is_continuous_action_space(self.action_space):
-                log.warning(
-                    'WARNING! It is recommended to enable Fixed KL loss (https://arxiv.org/pdf/1707.06347.pdf) for continuous action tasks. '
-                    'I.e. set --kl_loss_coeff=1.0'
-                )
-                time.sleep(3.0)
-            self.kl_loss_func = lambda action_space, action_logits, distribution, valids: 0.0
-        else:
-            self.kl_loss_func = self._kl_loss
 
     def _init(self):
         log.info('Waiting for the learner to initialize...')
@@ -628,23 +613,13 @@ class LearnerWorker:
 
         return value_loss
 
-    def _kl_loss(self, action_space, action_logits, action_distribution, valids):
-        old_action_distribution = get_action_distribution(action_space, action_logits)
-        kl_loss = action_distribution.kl_divergence(old_action_distribution)
-        kl_loss = torch.masked_select(kl_loss, valids)
-        kl_loss = kl_loss.mean()
-
-        kl_loss *= self.cfg.kl_loss_coeff
-
-        return kl_loss
-
-    def _entropy_exploration_loss(self, action_distribution, valids):
+    def entropy_exploration_loss(self, action_distribution, valids):
         entropy = action_distribution.entropy()
         entropy = torch.masked_select(entropy, valids)
         entropy_loss = -self.cfg.exploration_loss_coeff * entropy.mean()
         return entropy_loss
 
-    def _symmetric_kl_exploration_loss(self, action_distribution, valids):
+    def symmetric_kl_exploration_loss(self, action_distribution, valids):
         kl_prior = action_distribution.symmetric_kl_with_uniform_prior()
         kl_prior = torch.masked_select(kl_prior, valids).mean()
         if not torch.isfinite(kl_prior):
@@ -655,7 +630,7 @@ class LearnerWorker:
 
     def _prepare_observations(self, obs_tensors, gpu_buffer_obs):
         for d, gpu_d, k, v, _ in iter_dicts_recursively(obs_tensors, gpu_buffer_obs):
-            device, dtype = self.module.device_and_type_for_input_tensor(k)
+            device, dtype = self.actor_critic.module.device_and_type_for_input_tensor(k)
             tensor = v.detach().to(device, copy=True).type(dtype)
             gpu_d[k] = tensor
 
@@ -815,10 +790,9 @@ class LearnerWorker:
 
                 with timing.add_time('losses'):
                     policy_loss = self._policy_loss(ratio, adv, clip_ratio_low, clip_ratio_high, valids)
-                    exploration_loss = self.exploration_loss_func(action_distribution, valids)
-                    kl_loss = self.kl_loss_func(self.module.action_space, mb.action_logits, action_distribution, valids)
 
-                    actor_loss = policy_loss + exploration_loss + kl_loss
+                    exploration_loss = self.exploration_loss_func(action_distribution, valids)
+                    actor_loss = policy_loss + exploration_loss
                     epoch_actor_losses.append(actor_loss.item())
 
                     targets = targets.to(self.device)
@@ -841,11 +815,10 @@ class LearnerWorker:
                             loss = loss + aux_loss
 
                     high_loss = 30.0
-                    if abs(to_scalar(policy_loss)) > high_loss or abs(to_scalar(value_loss)) > high_loss or abs(
-                            to_scalar(exploration_loss)) > high_loss or abs(to_scalar(kl_loss)) > high_loss:
+                    if abs(to_scalar(policy_loss)) > high_loss or abs(to_scalar(value_loss)) > high_loss or abs(to_scalar(exploration_loss)) > high_loss:
                         log.warning(
-                            'High loss value: l:%.4f pl:%.4f vl:%.4f exp_l:%.4f kl_l:%.4f (recommended to adjust the --reward_scale parameter)',
-                            to_scalar(loss), to_scalar(policy_loss), to_scalar(value_loss), to_scalar(exploration_loss), to_scalar(kl_loss),
+                            'High loss value: %.4f %.4f %.4f %.4f (recommended to adjust the --reward_scale parameter)',
+                            to_scalar(loss), to_scalar(policy_loss), to_scalar(value_loss), to_scalar(exploration_loss),
                         )
                         force_summaries = True
 
@@ -857,15 +830,8 @@ class LearnerWorker:
                     if self.aux_loss_module is not None:
                         for p in self.aux_loss_module.parameters():
                             p.grad = None
-                    try:
-                        loss.backward()
-                    except RuntimeError as runtime_error:
-                        if "Connection closed by peer" in str(runtime_error):
-                            # DDP could not synchronize with other nodes. This occurs, when training has a time limit at the end of the trainig
-                            # We just return None until this node is at the end, too
-                            return None
-                        else:
-                            raise
+
+                    loss.backward()
 
                     if self.cfg.max_grad_norm > 0.0:
                         with timing.add_time('clip'):
@@ -928,7 +894,6 @@ class LearnerWorker:
         stats.value = var.result.values.mean()
         stats.entropy = var.action_distribution.entropy().mean()
         stats.policy_loss = var.policy_loss
-        stats.kl_loss = var.kl_loss
         stats.value_loss = var.value_loss
         stats.exploration_loss = var.exploration_loss
         if self.aux_loss_module is not None:
@@ -953,14 +918,12 @@ class LearnerWorker:
 
             # calculate KL-divergence with the behaviour policy action distribution
             old_action_distribution = get_action_distribution(
-                self.module.action_space, var.mb.action_logits,
+                self.actor_critic.module.action_space, var.mb.action_logits,
             )
             kl_old = var.action_distribution.kl_divergence(old_action_distribution)
             kl_old_mean = kl_old.mean()
-            kl_old_max = kl_old.max()
 
             stats.kl_divergence = kl_old_mean
-            stats.kl_divergence_max = kl_old_max
             stats.value_delta = value_delta_avg
             stats.value_delta_max = value_delta_max
             stats.fraction_clipped = ((var.ratio < var.clip_ratio_low).float() + (var.ratio > var.clip_ratio_high).float()).mean()
@@ -1038,31 +1001,10 @@ class LearnerWorker:
 
     def init_model(self, timing):
         host_list = os.getenv('MYHOSTLIST').split(",")
-        if host_list is not None:
-            master_addr = host_list[0].split("*", 1)[0]
-            backend = "gloo"
-            default_master_port = 29500
-            if self.cfg.with_pbt:
-                master_port = default_master_port + self.policy_id
-                world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
-                rank = int(os.environ['SLURM_PROCID'])
-            else:
-                # TODO Test this
-                # This should disable the ability to train the same policy without PBT in parallel,
-                # but should give us the ability to use multiple GPUS per node.
-                # In this case it is okay, that e.g. policy 0 and policy 1 can be mixed in environments by the policy manager
-                # (giving the impression of different policies training against each other), because torch's DDP ensures
-                # that both policies are actually the same.
-                master_port = default_master_port
-                world_size = int(os.environ['SLURM_JOB_NUM_NODES']) * self.cfg.num_policies
-                rank = self.cfg.num_policies * int(os.environ['SLURM_PROCID']) + self.policy_id
-        else:
-            master_addr = "localhost"
-            master_port = 29500
-            world_size = 1
-            rank = 0
-
-
+        master_addr = host_list[0].split("*", 1)[0]
+        master_port = 29500
+        world_size = int(os.environ['SLURM_JOB_NUM_NODES'])
+        rank = int(os.environ['SLURM_PROCID'])
 
         store = torch.distributed.TCPStore (
             master_addr,
@@ -1070,6 +1012,8 @@ class LearnerWorker:
             world_size,
             rank == 0,
         )
+
+        backend="gloo"
 
         # processing group
         torch.distributed.init_process_group (
@@ -1080,13 +1024,7 @@ class LearnerWorker:
         )
         
         model = create_actor_critic(self.cfg, self.obs_space, self.action_space, timing).to(0)
-        if world_size == 1:
-            self.actor_critic = model
-            self.module = self.actor_critic
-        else:
-            self.actor_critic = DDP(model)
-            self.module = self.actor_critic.module
-
+        self.actor_critic = DDP(model)
         #self.actor_critic.model_to_device(self.device)
         self.actor_critic.share_memory()
 
@@ -1095,14 +1033,6 @@ class LearnerWorker:
 
         if self.aux_loss_module is not None:
             self.aux_loss_module.to(device=self.device)
-
-        if rank == 0:
-            log.info('Initialized torch.DDP master node with address %s at port %s, using %s different nodes.',
-                     master_addr,
-                     master_port,
-                     world_size)
-        else:
-            log.debug('Initialized model on node %s.', rank)
 
     def load_from_checkpoint(self, policy_id):
         checkpoints = self.get_checkpoints(self.checkpoint_dir(self.cfg, policy_id))
@@ -1303,17 +1233,12 @@ class LearnerWorker:
 
     def _run(self):
         self.deferred_initialization()
-        log.info(f'LEARNER\tpid {os.getpid()}\tparent {os.getppid()}')
 
         # workers should ignore Ctrl+C because the termination is handled in the event loop by a special msg
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
-            if os.name == 'nt':
-                niceness = psutil.HIGH_PRIORITY_CLASS
-            else:
-                niceness = self.cfg.default_niceness
-            psutil.Process().nice(niceness)
+            psutil.Process().nice(self.cfg.default_niceness)
         except psutil.AccessDenied:
             log.error('Low niceness requires sudo!')
 
@@ -1397,7 +1322,7 @@ class LearnerWorker:
 
     def init(self):
         self.task_queue.put((TaskType.INIT, None))
-        #self.initialized_event.wait()
+        self.initialized_event.wait()
 
     def save_model(self, timeout=None):
         #if(self.rank != 0):
@@ -1419,5 +1344,5 @@ class LearnerWorker:
     def join(self):
         join_or_kill(self.process)
 
-    def get_rank(self):
+    def get_rank():
         return int(os.environ['SLURM_PROCID'])

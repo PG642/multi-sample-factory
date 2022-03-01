@@ -9,8 +9,7 @@ from multi_sample_factory.algorithms.appo.actor_worker import transform_dict_obs
 from multi_sample_factory.algorithms.appo.learner import LearnerWorker
 from multi_sample_factory.algorithms.appo.model import create_actor_critic
 from multi_sample_factory.algorithms.appo.model_utils import get_hidden_size
-from multi_sample_factory.algorithms.utils.action_distributions import ContinuousActionDistribution, \
-    transform_action_space
+from multi_sample_factory.algorithms.utils.action_distributions import ContinuousActionDistribution
 from multi_sample_factory.algorithms.utils.algo_utils import ExperimentStatus
 from multi_sample_factory.algorithms.utils.arguments import parse_args, load_from_checkpoint
 from multi_sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper, is_multiagent_env
@@ -33,7 +32,7 @@ def enjoy(cfg, max_num_frames=1e9):
     def make_env_func(env_config):
         return create_env(cfg.env, cfg=cfg, env_config=env_config)
 
-    env = make_env_func(AttrDict({'worker_index': 0, 'vector_index': 0, 'env_id': 0}))
+    env = make_env_func(AttrDict({'worker_index': 0, 'vector_index': 0}))
     # env.seed(0)
 
     is_multiagent = is_multiagent_env(env)
@@ -43,8 +42,8 @@ def enjoy(cfg, max_num_frames=1e9):
     if hasattr(env.unwrapped, 'reset_on_init'):
         # reset call ruins the demo recording for VizDoom
         env.unwrapped.reset_on_init = False
-    action_space = transform_action_space(env.action_space)
-    actor_critic = create_actor_critic(cfg, env.observation_space, action_space)
+
+    actor_critic = create_actor_critic(cfg, env.observation_space, env.action_space)
 
     device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
     actor_critic.model_to_device(device)
@@ -52,14 +51,7 @@ def enjoy(cfg, max_num_frames=1e9):
     policy_id = cfg.policy_index
     checkpoints = LearnerWorker.get_checkpoints(LearnerWorker.checkpoint_dir(cfg, policy_id))
     checkpoint_dict = LearnerWorker.load_checkpoint(checkpoints, device)
-    from collections import OrderedDict
-    new_state_dict = OrderedDict()
-    for k, v in checkpoint_dict['model'].items():
-        name = k
-        if name.startswith("module."):
-            name = name.replace("module.", "", 1)
-        new_state_dict[name] = v
-    actor_critic.load_state_dict(new_state_dict)
+    actor_critic.load_state_dict(checkpoint_dict['model'])
 
     episode_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
     true_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
@@ -84,16 +76,16 @@ def enjoy(cfg, max_num_frames=1e9):
             policy_outputs = actor_critic(obs_torch, rnn_states, with_action_distribution=True)
 
             # sample actions from the distribution by default
-            actions = policy_outputs[2].actions
+            actions = policy_outputs.actions
 
-            action_distribution = policy_outputs[2].action_distribution
+            action_distribution = policy_outputs.action_distribution
             if isinstance(action_distribution, ContinuousActionDistribution):
                 if not cfg.continuous_actions_sample:  # TODO: add similar option for discrete actions
                     actions = action_distribution.means
 
             actions = actions.cpu().numpy()
 
-            rnn_states = policy_outputs[2].rnn_states
+            rnn_states = policy_outputs.rnn_states
 
             for _ in range(render_action_repeat):
                 if not cfg.no_render:

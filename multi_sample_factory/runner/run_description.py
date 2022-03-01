@@ -1,11 +1,11 @@
-import os, re
+import os
 from os.path import join
 
 import numpy as np
 
 from collections import OrderedDict
 
-from multi_sample_factory.utils.utils import log
+from multi_sample_factory.utils.utils import ensure_dir_exists
 
 
 class ParamGenerator:
@@ -90,7 +90,7 @@ class Experiment:
         self.params = list(param_generator)
         self.env_vars = env_vars
 
-    def generate_experiments(self, experiment_arg_name, customize_experiment_name, param_prefix):
+    def generate_experiments(self):
         """Yields tuples of (cmd, experiment_name)"""
         num_experiments = 1 if len(self.params) == 0 else len(self.params)
 
@@ -99,71 +99,48 @@ class Experiment:
             experiment_name_tokens = [self.base_name]
 
             # abbreviations for parameter names that we've used
-            param_shorthands = []
+            param_abbrs = []
 
             if len(self.params) > 0:
                 params = self.params[experiment_idx]
                 for param, value in params.items():
-                    param_str = f'{param_prefix}{param}={value}'
+                    param_str = f'--{param} {value}'
                     cmd_tokens.append(param_str)
 
-                    param_tokens = re.split('[._-]', param)
-                    shorthand_tokens = [t[0] for t in param_tokens[:-1]]
+                    abbr = None
+                    for l in range(len(param)):
+                        abbr = param[:l+3]
+                        if abbr not in param_abbrs:
+                            break
 
-                    last_token_l = min(3, len(param_tokens[-1]))
-                    shorthand = '.'.join(shorthand_tokens + [param_tokens[-1][:last_token_l]])
-                    while last_token_l <= len(param_tokens[-1]) and shorthand in param_shorthands:
-                        last_token_l += 1
-                        shorthand = '.'.join(shorthand_tokens + [param_tokens[-1][:last_token_l]])
+                    param_abbrs.append(abbr)
+                    experiment_name_token = f'{abbr}_{value}'
+                    experiment_name_tokens.append(experiment_name_token)
 
-                param_shorthands.append(shorthand)
-                experiment_name_token = f'{shorthand}_{value}'
-                experiment_name_tokens.append(experiment_name_token)
+            experiment_name = f'{experiment_idx:02d}_' + '_'.join(experiment_name_tokens)
 
-            if customize_experiment_name:
-                experiment_name = f'{experiment_idx:02d}_' + '_'.join(experiment_name_tokens)
-                if len(experiment_name) > 100:
-                    log.warning('Experiment name is extra long! (%d characters)', len(experiment_name))
-            else:
-                experiment_name = self.base_name
-
-            cmd_tokens.append(f'{experiment_arg_name}={experiment_name}')
+            cmd_tokens.append(f'--experiment {experiment_name}')
             param_str = ' '.join(cmd_tokens)
 
             yield param_str, experiment_name
 
 
 class RunDescription:
-    def __init__(
-            self, run_name, experiments, experiment_dirs_sf_format=True,
-            experiment_arg_name='--experiment', experiment_dir_arg_name='--train_dir',
-            customize_experiment_name=True, param_prefix='--',
-    ):
+    def __init__(self, run_name, experiments, train_dir=None):
+        if train_dir is None:
+            train_dir = ensure_dir_exists(join(os.getcwd(), 'train_dir'))
+
+        self.train_dir = train_dir
         self.run_name = run_name
         self.experiments = experiments
         self.experiment_suffix = ''
 
-        self.experiment_dirs_sf_format = experiment_dirs_sf_format
-        self.experiment_arg_name = experiment_arg_name
-        self.experiment_dir_arg_name = experiment_dir_arg_name
-
-        self.customize_experiment_name = customize_experiment_name
-
-        self.param_prefix = param_prefix
-
-
-    def generate_experiments(self, train_dir):
+    def generate_experiments(self):
         """Yields tuples (final cmd for experiment, experiment_name, root_dir)."""
         for experiment in self.experiments:
             root_dir = join(self.run_name, f'{experiment.base_name}_{self.experiment_suffix}')
 
-            experiment_cmds = experiment.generate_experiments(self.experiment_arg_name, self.customize_experiment_name,
-                                                              self.param_prefix)
+            experiment_cmds = experiment.generate_experiments()
             for experiment_cmd, experiment_name in experiment_cmds:
-                if self.experiment_dirs_sf_format:
-                    experiment_cmd += f' --train_dir={train_dir} --experiments_root={root_dir}'
-                else:
-                    experiment_dir = join(train_dir, root_dir)
-                    os.makedirs(experiment_dir, exist_ok=True)
-                    experiment_cmd += f' {self.experiment_dir_arg_name}={experiment_dir}'
+                experiment_cmd += f' --train_dir={self.train_dir} --experiments_root={root_dir}'
                 yield experiment_cmd, experiment_name, root_dir, experiment.env_vars

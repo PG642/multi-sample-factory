@@ -1,7 +1,6 @@
 import random
 import signal
 import time
-import os
 from collections import OrderedDict
 from queue import Empty, Full
 
@@ -57,7 +56,7 @@ class ActorState:
         self.agent_idx = agent_idx
 
         self.policy_mgr = policy_mgr
-        self.curr_policy_id = self.policy_mgr.get_policy_for_agent(agent_idx, env_idx, self.worker_idx)
+        self.curr_policy_id = self.policy_mgr.get_policy_for_agent(agent_idx, env_idx)
         self._env_set_curr_policy()
 
         self.shared_buffers = shared_buffers
@@ -207,7 +206,7 @@ class ActorState:
 
             set_training_info(self.env_training_info_interface, self.approx_env_steps.get(self.curr_policy_id, 0))
 
-            new_policy_id = self.policy_mgr.get_policy_for_agent(self.agent_idx, self.env_idx, self.worker_idx)
+            new_policy_id = self.policy_mgr.get_policy_for_agent(self.agent_idx, self.env_idx)
             if new_policy_id != self.curr_policy_id:
                 self._on_new_policy(new_policy_id)
 
@@ -845,7 +844,6 @@ class ActorWorker:
         retry on the initial reset(). This is definitely something to work on.
         """
         log.info('Initializing vector env runner %d...', self.worker_idx)
-        log.info(f'ACTOR worker {self.worker_idx}\tpid {os.getpid()}\tparent {os.getppid()}')
 
         # workers should ignore Ctrl+C because the termination is handled in the event loop by a special msg
         signal.signal(signal.SIGINT, signal.SIG_IGN)

@@ -12,7 +12,8 @@ from subprocess import Popen, PIPE
 
 from multi_sample_factory.utils.utils import log, str2bool
 
-SBATCH_TEMPLATE_DEFAULT = (
+# TODO: this is not portable, a hack
+SBATCH_TEMPLATE = (
     '#!/bin/bash\n'
     'source /homes/petrenko/miniconda3/etc/profile.d/conda.sh\n'
     'conda activate sample-factory\n'
@@ -25,10 +26,6 @@ def add_slurm_args(parser):
     parser.add_argument('--slurm_cpus_per_gpu', default=14, type=int, help='Max allowed number of CPU cores per allocated GPU')
     parser.add_argument('--slurm_print_only', default=False, type=str2bool, help='Just print commands to the console without executing')
     parser.add_argument('--slurm_workdir', default=None, type=str, help='Optional workdir. Used by slurm runner to store logfiles etc.')
-    parser.add_argument('--slurm_partition', default=None, type=str,
-                        help='Adds slurm partition, i.e. for "gpu" it will add "-p gpu" to sbatch command line')
-    parser.add_argument('--slurm_sbatch_template', default=None, type=str,
-                        help='Commands to run before the actual experiment (i.e. activate conda env, etc.)')
     return parser
 
 
@@ -44,15 +41,7 @@ def run_slurm(run_description, args):
         log.info('Creating %s...', workdir)
         os.makedirs(workdir)
 
-    if args.slurm_sbatch_template is not None:
-        with open(args.slurm_sbatch_template, 'r') as template_file:
-            sbatch_template = template_file.read()
-    else:
-        sbatch_template = SBATCH_TEMPLATE_DEFAULT
-
-    log.info('Sbatch template: %s', sbatch_template)
-
-    experiments = run_description.generate_experiments(args.train_dir)
+    experiments = run_description.generate_experiments()
     sbatch_files = []
     for experiment in experiments:
         cmd, name, *_ = experiment
@@ -60,15 +49,11 @@ def run_slurm(run_description, args):
         sbatch_fname = f'sbatch_{name}.sh'
         sbatch_fname = join(workdir, sbatch_fname)
 
-        file_content = sbatch_template + '\n' + cmd + '\n\necho "Done!!!"'
+        file_content = SBATCH_TEMPLATE + cmd + '\n\necho "Done!!!"'
         with open(sbatch_fname, 'w') as sbatch_f:
             sbatch_f.write(file_content)
 
         sbatch_files.append(sbatch_fname)
-
-    partition = ''
-    if args.slurm_partition is not None:
-        partition = f'-p {args.slurm_partition} '
 
     job_ids = []
     idx = 0
@@ -76,7 +61,7 @@ def run_slurm(run_description, args):
         idx += 1
         sbatch_fname = os.path.basename(sbatch_file)
         num_cpus = args.slurm_cpus_per_gpu * args.slurm_gpus_per_job
-        cmd = f'sbatch {partition}--gres=gpu:{args.slurm_gpus_per_job} -c {num_cpus} --parsable --output {workdir}/{sbatch_fname}-slurm-%j.out {sbatch_file}'
+        cmd = f'sbatch -p gpu --gres=gpu:{args.slurm_gpus_per_job} -c {num_cpus} --parsable --output {workdir}/{sbatch_fname}-slurm-%j.out {sbatch_file}'
         log.info('Executing %s...', cmd)
 
         if args.slurm_print_only:
@@ -87,11 +72,6 @@ def run_slurm(run_description, args):
             output, err = process.communicate()
             exit_code = process.wait()
             log.info('Output: %s, err: %s, exit code: %r', output, err, exit_code)
-
-            if exit_code != 0:
-                log.error('sbatch process failed!')
-                time.sleep(5)
-
         job_id = int(output)
         job_ids.append(str(job_id))
 
@@ -102,9 +82,7 @@ def run_slurm(run_description, args):
 
     scancel_cmd = f'scancel {" ".join(job_ids)}'
 
-    log.info('Jobs queued: %r', job_ids)
-
-    log.info('Use this command to cancel your jobs: \n\t %s \n', scancel_cmd)
+    log.info(f'Cancel with: \n\t %s \n', scancel_cmd)
 
     with open(join(workdir, 'scancel.sh'), 'w') as fobj:
         fobj.write(scancel_cmd)

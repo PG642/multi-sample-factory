@@ -1,13 +1,10 @@
 """Utilities."""
 
 import argparse
-import getpass
 import importlib
 import logging
 import operator
 import os
-from typing import Dict
-
 if os.name != 'nt':
     import pwd
 import tempfile
@@ -158,22 +155,6 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected')
-
-
-def str2dict(string: str) -> Dict[str, float]:
-    dictionary = {}
-    if string.strip() == "":
-        return dictionary
-    try:
-        key_value_pairs = string.split(",")
-        for key_value_pair in key_value_pairs:
-            splitted_key_value_pair = key_value_pair.split(":")
-            key = splitted_key_value_pair[0]
-            value = float(splitted_key_value_pair[1])
-            dictionary[key] = value
-    except IndexError as error:
-        raise argparse.ArgumentTypeError("String '{0}' could not be parsed to a dictionary.".format(string)) from error
-    return dictionary
 
 
 # numpy stuff
@@ -333,10 +314,7 @@ def set_process_cpu_affinity(worker_idx, num_workers):
 
 def ensure_dir_exists(path):
     if not os.path.exists(path):
-        try:
-            os.makedirs(path, exist_ok=True)
-        except FileExistsError:
-            pass
+        os.makedirs(path)
     return path
 
 
@@ -354,10 +332,7 @@ def remove_if_exists(file):
 
 
 def get_username():
-    if os.name == 'nt':
-        return getpass.getuser()
-    else:
-        return pwd.getpwuid(os.getuid()).pw_name
+    return pwd.getpwuid(os.getuid()).pw_name
 
 
 def project_tmp_dir():
@@ -366,17 +341,11 @@ def project_tmp_dir():
 
 
 def experiments_dir(cfg):
-    try:
-        return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
-    except KeyError:
-        return ensure_dir_exists(cfg.train_dir)
+    return ensure_dir_exists(cfg.train_dir+"_"+os.environ['SLURM_PROCID'])
 
 
 def experiment_dir(cfg):
-    try:
-        experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
-    except KeyError:
-        experiment = cfg.experiment
+    experiment = cfg.experiment+"_"+os.environ['SLURM_PROCID']
     experiments_root = cfg.experiments_root
 
     if experiments_root is None:

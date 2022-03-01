@@ -1,5 +1,4 @@
 import multiprocessing
-import os
 import signal
 import time
 from collections import deque
@@ -187,7 +186,6 @@ class PolicyWorker:
         with timing.timeit('init'):
             # initialize the Torch modules
             log.info('Initializing model on the policy worker %d-%d...', self.policy_id, self.worker_idx)
-            log.info(f'POLICY worker {self.policy_id}-{self.worker_idx}\tpid {os.getpid()}\tparent {os.getppid()}')
 
             torch.set_num_threads(1)
 

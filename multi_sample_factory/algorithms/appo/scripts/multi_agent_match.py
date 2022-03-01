@@ -36,6 +36,7 @@ ENV_NAME = 'doom_duel'
 NO_RENDER = True
 FPS = 10000
 
+
 def multi_agent_match(policy_indices, max_num_episodes=int(1e9), max_num_frames=1e10):
     log.debug('Starting eval process with policies %r', policy_indices)
     for i, rival in enumerate(RIVALS):

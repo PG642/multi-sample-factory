@@ -25,7 +25,7 @@ from multi_sample_factory.utils.timing import Timing
 from multi_sample_factory.utils.utils import log, AttrDict, set_process_cpu_affinity, str2bool, memory_consumption_mb
 
 if os.name == 'nt':
-    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
+    from multi_sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
 

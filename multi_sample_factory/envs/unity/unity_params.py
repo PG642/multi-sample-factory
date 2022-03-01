@@ -1,4 +1,3 @@
-from multi_sample_factory.utils.utils import str2dict
 # noinspection PyUnusedLocal
 def unity_override_defaults(env, parser):
     parser.set_defaults(
@@ -14,7 +13,7 @@ def unity_override_defaults(env, parser):
         gae_lambda=0.99, # based on experiments with ml-agents
         ppo_clip_ratio=0.2, # based on experiments with ml-agents, note, that clipping works slighty differently in ml-agents
         exploration_loss_coeff=0.001, # based on experiments with ml-agents
-        rollout=256, # this value was 5000 in ml-agents experiments, which seemed a little bit high (128, because batch size needs to mutliple of rollout (why?))
+        rollout=128, # this value was 5000 in ml-agents experiments, which seemed a little bit high (128, because batch size needs to mutliple of rollout (why?))
         reset_timeout_seconds=16384 # high value to compensate for the high rollout value when decorrelating experience
     )
 
@@ -25,5 +24,3 @@ def add_unity_env_args(env, parser):
                    help='Path of the executables for the unity environments.')
     p.add_argument('--unity_time_scale', default=20.0, type=float,
                    help='Controls the Time.timeScale of unity. For more information please visit https://docs.unity3d.com/ScriptReference/Time-timeScale.html.')
-    p.add_argument('--env_params', default="", type=str2dict,
-                   help="A string formatted like a dictionary: [Key1]:[Value1],[Key2]:[Value2]. This contains the environment parameters.")

@@ -1,11 +1,8 @@
 import contextlib
 import math
-import os
 from typing import Optional, List
-if os.name != 'nt':
-    import faster_fifo
-else:
-    import multi_sample_factory.utils.faster_fifo_stub as faster_fifo
+
+import faster_fifo
 import numpy as np
 import torch
 from gym import spaces
@@ -252,7 +249,7 @@ class TensorDict(dict):
             elif isinstance(new_data, np.ndarray):
                 t = torch.from_numpy(new_data)
             else:
-                raise Exception(f'{new_data} of type {type(new_data)} not supported in set_data_func')
+                raise Exception(f'Type {type(new_data)} not supported in set_data_func')
 
             x[index].copy_(t)
 
@@ -262,7 +259,6 @@ class TensorDict(dict):
             elif isinstance(new_data, np.ndarray):
                 n = new_data
             else:
-
-                raise Exception(f'{new_data} of type {type(new_data)} not supported in set_data_func')
+                raise Exception(f'Type {type(new_data)} not supported in set_data_func')
 
             x[index] = n

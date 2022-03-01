@@ -41,7 +41,7 @@ from multi_sample_factory.utils.utils import summaries_dir, experiment_dir, log,
 from multi_sample_factory.algorithms.utils.action_distributions import transform_action_space
 
 if os.name == 'nt':
-    from multi_sample_factory.utils.faster_fifo_stub import Queue as MpQueue
+    from multi_sample_factory.utils import Queue as MpQueue
 else:
     from faster_fifo import Queue as MpQueue
     # noinspection PyUnresolvedReferences
@@ -124,10 +124,6 @@ class APPO(ReinforcementLearningAlgorithm):
         p.add_argument('--exploration_loss_coeff', default=0.003, type=float,
                        help='Coefficient for the exploration component of the loss function.')
         p.add_argument('--value_loss_coeff', default=0.5, type=float, help='Coefficient for the critic loss')
-        p.add_argument('--kl_loss_coeff', default=0.0, type=float,
-                       help='Coefficient for fixed KL loss (as used by Schulman et al. in https://arxiv.org/pdf/1707.06347.pdf). '
-                            'Highly recommended for environments with continuous action spaces.',
-                       )
         p.add_argument('--exploration_loss', default='entropy', type=str, choices=['entropy', 'symmetric_kl'],
                        help='Usually the exploration loss is based on maximizing the entropy of the probability'
                             ' distribution. Note that mathematically maximizing entropy of the categorical probability '
@@ -436,17 +432,11 @@ class APPO(ReinforcementLearningAlgorithm):
                 self.report_queue, policy_worker_queues[policy_id], self.traj_buffers,
                 policy_locks[policy_id], resume_experience_collection_cv[policy_id],
             )
-            log.debug('Learner worker %s object initialized.', learner_idx)
             learner_worker.start_process()
-            log.debug('Learner worker %s process started.', learner_idx)
             learner_worker.init()
-            log.debug('Learner worker %s init finished.', learner_idx)
 
             self.learner_workers[policy_id] = learner_worker
             learner_idx += 1
-
-        for policy_id in range(self.cfg.num_policies):
-            self.learner_workers[policy_id].initialized_event.wait()
 
         log.info('Initializing policy workers...')
         for policy_id in range(self.cfg.num_policies):
