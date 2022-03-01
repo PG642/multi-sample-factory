@@ -2,11 +2,11 @@ from random import random
 from typing import List
 
 from mlagents_envs.environment import UnityEnvironment
-from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import  EnvironmentParametersChannel
 from os.path import join
 import random
+from multi_sample_factory.envs.unity.UnityGymWrapper import UnityToGymWrapper
 
 
 class UnitySpec:
@@ -24,8 +24,10 @@ UNITY_ENVS = [
                "usePsyonixImpulse", "useCustomBounce", "useWallStabilization", "useGroundStabilization"]),
     UnitySpec('unity_saving_training_mixed', 'saving_training_mixed', []),
     UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', []),
-    UnitySpec('unity_striker', 'striker', [])
-    # You can add more unity environments here if needed.
+    UnitySpec('unity_striker', 'striker', []),
+    UnitySpec('unity_multi_agent_env', 'multi_agent_env', []),
+    UnitySpec('unity_1v1', "1v1", [])
+    # You can add more unity environments here if needed
 ]
 
 
