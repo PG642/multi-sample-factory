@@ -39,6 +39,7 @@ class UnityToGymWrapper(gym.Env):
         :param unity_env: The Unity BaseEnv to be wrapped in the gym. Will be closed when the UnityToGymWrapper closes.
         :param action_space_seed: If non-None, will be used to set the random seed on created gym.Space instances.
         """
+
         self._env = unity_env
 
         # Take a single step so that the brain information will be sent over
