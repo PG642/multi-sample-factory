@@ -51,49 +51,33 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     engineConfigChannel = EngineConfigurationChannel()
     env_parameter_channel = EnvironmentParametersChannel()
 
-    # check if the environment is for a single agent
-    if unity_spec in [spec.full_env_name for spec in UNITY_ENVS]:
-        if env_config is not None:
-            unity_env = UnityEnvironment(file_name=exec_path,
-                                        side_channels=[engineConfigChannel, env_parameter_channel],
-                                        worker_id=env_config.env_id,
-                                        seed=rand)
+    if env_config is not None:
+        unity_env = UnityEnvironment(file_name=exec_path,
+                                    side_channels=[engineConfigChannel, env_parameter_channel],
+                                    worker_id=env_config.env_id,
+                                    seed=rand)
 
-        # this is a temporary environment with no env_config
+    # this is a temporary environment with no env_config
+    else:
+        unity_env = UnityEnvironment(file_name=exec_path,
+                                    side_channels=[engineConfigChannel],
+                                    worker_id=0,
+                                    seed=rand)
+    engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
+    for key, value in cfg.env_params.items():
+        if key in unity_spec.env_parameters:
+            env_parameter_channel.set_float_parameter(key=key, value=value)
         else:
-            unity_env = UnityEnvironment(file_name=exec_path,
-                                        side_channels=[engineConfigChannel],
-                                        worker_id=0,
-                                        seed=rand)
-        engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
-        for key, value in cfg.env_params.items():
-            if key in unity_spec.env_parameters:
-                env_parameter_channel.set_float_parameter(key=key, value=value)
-            else:
-                raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
-                                "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
+            raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
+                            "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
+    # env = UnityToGymWrapper(unity_env)
+    # return env
+# check if the environment is for a single agent
+    if unity_spec in [spec.full_env_name for spec in UNITY_ENVS]:
         env = UnityToGymWrapper(unity_env)
         return env
-    
-    if unity_spec in [spec.full_env_name for spec in UNITY_MULTI_ENVS]:
-        if env_config is not None:
-            unity_env = UnityEnvironment(file_name=exec_path,
-                                        side_channels=[engineConfigChannel, env_parameter_channel],
-                                        worker_id=env_config.env_id,
-                                        seed=rand)
-
-        # this is a temporary environment with no env_config
-        else:
-            unity_env = UnityEnvironment(file_name=exec_path,
-                                        side_channels=[engineConfigChannel],
-                                        worker_id=0,
-                                        seed=rand)
-        engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
-        for key, value in cfg.env_params.items():
-            if key in unity_spec.env_parameters:
-                env_parameter_channel.set_float_parameter(key=key, value=value)
-            else:
-                raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
-                                "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
+    elif unity_spec in [spec.full_env_name for spec in UNITY_MULTI_ENVS]:
         env = MultiUnityToGymWrapper(unity_env)
         return env
+    else
+        raise ValueError("Environment Spec is not properly used.")
