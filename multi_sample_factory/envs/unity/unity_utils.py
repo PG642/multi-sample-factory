@@ -41,6 +41,9 @@ def unity_env_by_name(full_env_name):
     for cfg in UNITY_ENVS:
         if cfg.full_env_name == full_env_name:
             return cfg
+    for cfg in UNITY_MULTI_ENVS:
+        if cfg.full_env_name == full_env_name:
+            return cfg
     raise Exception('Unknown Unity env')
 
 
