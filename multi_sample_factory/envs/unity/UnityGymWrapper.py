@@ -254,7 +254,7 @@ class UnityToGymWrapper(gym.Env):
     @property
     def action_space(self) -> Union[dict, Space]:
         # if len(self._action_space) == 1:
-            # return list(self._action_space.values())[0]
+        #     return list(self._action_space.values())[0]
         return self._action_space
 
     @property

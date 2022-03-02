@@ -2,12 +2,12 @@ from random import random
 from typing import List
 
 from mlagents_envs.environment import UnityEnvironment
-# from gym_unity.envs import UnityToGymWrapper
+from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import  EnvironmentParametersChannel
 from os.path import join
 import random
-from multi_sample_factory.envs.unity.UnityGymWrapper import UnityToGymWrapper
+from multi_sample_factory.envs.unity.UnityGymWrapper import UnityToGymWrapper as MultiUnityToGymWrapper
 
 
 
@@ -27,10 +27,13 @@ UNITY_ENVS = [
     UnitySpec('unity_saving_training_mixed', 'saving_training_mixed', []),
     UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', []),
     UnitySpec('unity_striker', 'striker', []),
+    # You can add more unity environments here if needed
+]
+
+UNITY_MULTI_ENVS = [
     UnitySpec('unity_multi_agent_env', 'multi_agent_env', []),
     UnitySpec('unity_1v1', "1v1", []),
     UnitySpec("unity_1v1alternativeVerteiltesLernen", "1v1alternativeVerteiltesLernen", []),
-    # You can add more unity environments here if needed
 ]
 
 
@@ -47,24 +50,50 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name)
     engineConfigChannel = EngineConfigurationChannel()
     env_parameter_channel = EnvironmentParametersChannel()
-    if env_config is not None:
-        unity_env = UnityEnvironment(file_name=exec_path,
-                                     side_channels=[engineConfigChannel, env_parameter_channel],
-                                     worker_id=env_config.env_id,
-                                     seed=rand)
 
-    # this is a temporary environment with no env_config
-    else:
-        unity_env = UnityEnvironment(file_name=exec_path,
-                                     side_channels=[engineConfigChannel],
-                                     worker_id=0,
-                                     seed=rand)
-    engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
-    for key, value in cfg.env_params.items():
-        if key in unity_spec.env_parameters:
-            env_parameter_channel.set_float_parameter(key=key, value=value)
+    # check if the environment is for a single agent
+    if unity_spec in [spec.full_env_name for spec in UNITY_ENVS]:
+        if env_config is not None:
+            unity_env = UnityEnvironment(file_name=exec_path,
+                                        side_channels=[engineConfigChannel, env_parameter_channel],
+                                        worker_id=env_config.env_id,
+                                        seed=rand)
+
+        # this is a temporary environment with no env_config
         else:
-            raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
-                             "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
-    env = UnityToGymWrapper(unity_env)
-    return env
+            unity_env = UnityEnvironment(file_name=exec_path,
+                                        side_channels=[engineConfigChannel],
+                                        worker_id=0,
+                                        seed=rand)
+        engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
+        for key, value in cfg.env_params.items():
+            if key in unity_spec.env_parameters:
+                env_parameter_channel.set_float_parameter(key=key, value=value)
+            else:
+                raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
+                                "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
+        env = UnityToGymWrapper(unity_env)
+        return env
+    
+    if unity_spec in [spec.full_env_name for spec in UNITY_MULTI_ENVS]:
+        if env_config is not None:
+            unity_env = UnityEnvironment(file_name=exec_path,
+                                        side_channels=[engineConfigChannel, env_parameter_channel],
+                                        worker_id=env_config.env_id,
+                                        seed=rand)
+
+        # this is a temporary environment with no env_config
+        else:
+            unity_env = UnityEnvironment(file_name=exec_path,
+                                        side_channels=[engineConfigChannel],
+                                        worker_id=0,
+                                        seed=rand)
+        engineConfigChannel.set_configuration_parameters(time_scale=cfg.unity_time_scale)
+        for key, value in cfg.env_params.items():
+            if key in unity_spec.env_parameters:
+                env_parameter_channel.set_float_parameter(key=key, value=value)
+            else:
+                raise ValueError("Unknown environment parameter {0} detected. Available environment parameters for "
+                                "environment {1} are {2}".format(key, full_env_name, unity_spec.env_parameters))
+        env = MultiUnityToGymWrapper(unity_env)
+        return env
