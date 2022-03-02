@@ -82,5 +82,5 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     elif unity_spec in [spec.full_env_name for spec in UNITY_MULTI_ENVS]:
         env = MultiUnityToGymWrapper(unity_env)
         return env
-    else
+    else:
         raise ValueError("Environment Spec is not properly used.")
