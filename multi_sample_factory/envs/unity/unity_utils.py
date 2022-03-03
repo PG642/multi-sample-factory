@@ -41,15 +41,15 @@ UNITY_MULTI_ENVS = [
 def unity_env_by_name(full_env_name):
     for cfg in UNITY_ENVS:
         if cfg.full_env_name == full_env_name:
-            return cfg
+            return cfg, "single"
     for cfg in UNITY_MULTI_ENVS:
         if cfg.full_env_name == full_env_name:
-            return cfg
+            return cfg, "multi"
     raise Exception('Unknown Unity env')
 
 
 def make_unity_env(full_env_name, cfg, env_config=None):
-    unity_spec = unity_env_by_name(full_env_name)
+    unity_spec, wrapper = unity_env_by_name(full_env_name)
     rand = random.SystemRandom().randint(-2147483648, 2147483647)
     exec_path = join(cfg.exec_dir, unity_spec.exec_file_name, unity_spec.exec_file_name)
     engineConfigChannel = EngineConfigurationChannel()
@@ -77,10 +77,10 @@ def make_unity_env(full_env_name, cfg, env_config=None):
     # env = UnityToGymWrapper(unity_env)
     # return env
 # check if the environment is for a single agent
-    if unity_spec in [spec.full_env_name for spec in UNITY_ENVS]:
+    if wrapper == "single":
         env = UnityToGymWrapper(unity_env)
         return env
-    elif unity_spec in [spec.full_env_name for spec in UNITY_MULTI_ENVS]:
+    elif wrapper == "multi":
         env = MultiUnityToGymWrapper(unity_env)
         return env
     else:
