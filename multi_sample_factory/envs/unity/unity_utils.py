@@ -34,7 +34,7 @@ UNITY_MULTI_ENVS = [
     UnitySpec('unity_multi_agent_env', 'multi_agent_env', []),
     UnitySpec('unity_1v1', "1v1", []),
     UnitySpec("unity_1v1alternativeVerteiltesLernen", "1v1alternativeVerteiltesLernen", []),
-    UnitySpec('unity_1v1_shot_prediction', 'ShotPredictionRelolut', []),
+    UnitySpec('unity_1v1_shot_prediction', '1v1_frederik', []),
     # You can add more multi agent unity environments here if needed
 ]
 
