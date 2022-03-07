@@ -29,7 +29,7 @@ def make_env(cfg):
 
     return env
 
-def create_model(cfg, env):
+def create_model(cfg, device, action_space, observation_space):
     cfg = load_from_checkpoint(cfg)
     render_action_repeat = cfg.render_action_repeat if cfg.render_action_repeat is not None else cfg.env_frameskip
     if render_action_repeat is None:
@@ -41,10 +41,9 @@ def create_model(cfg, env):
     cfg.num_envs = 1
     # env.seed(0)
 
-    action_space = transform_action_space(env.action_space)
-    actor_critic = create_actor_critic(cfg, env.observation_space, action_space)
+    actor_critic = create_actor_critic(cfg, observation_space, action_space)
 
-    device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
+
     actor_critic.model_to_device(device)
 
     policy_id = cfg.policy_index
@@ -71,9 +70,9 @@ def enjoy(cfg, max_num_frames=1e9):
 
     cfg.env_frameskip = 1  # for evaluation
     cfg.num_envs = 1
-
+    device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
     env = make_env(cfg)
-    actor_critic = create_model(cfg, env)
+    actor_critic = create_model(cfg, device, transform_action_space(env.action_space), env.observation_space)
 
     episode_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
     true_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
