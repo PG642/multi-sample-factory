@@ -45,8 +45,8 @@ setup(
         'opencv-python',
     ],
 
-    package_dir={'': './'},
-    packages=setuptools.find_packages(where='./', include='multi_sample_factory*'),
+    package_dir={'': '.'},
+    packages=setuptools.find_packages(where='.', include='multi_sample_factory*'),
     include_package_data=True,
 
     python_requires='>=3.6',

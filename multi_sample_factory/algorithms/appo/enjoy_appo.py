@@ -30,13 +30,6 @@ def make_env(cfg):
     return env
 
 def create_model(cfg, device, action_space, observation_space):
-    cfg = load_from_checkpoint(cfg)
-    render_action_repeat = cfg.render_action_repeat if cfg.render_action_repeat is not None else cfg.env_frameskip
-    if render_action_repeat is None:
-        log.warning('Not using action repeat!')
-        render_action_repeat = 1
-    log.debug('Using action repeat %d during evaluation', render_action_repeat)
-
     cfg.env_frameskip = 1  # for evaluation
     cfg.num_envs = 1
     # env.seed(0)
