@@ -44,12 +44,16 @@ def create_model(cfg, device, action_space, observation_space):
     checkpoint_dict = LearnerWorker.load_checkpoint(checkpoints, device)
     from collections import OrderedDict
     new_state_dict = OrderedDict()
-    for k, v in checkpoint_dict['model'].items():
-        name = k
-        if name.startswith("module."):
-            name = name.replace("module.", "", 1)
-        new_state_dict[name] = v
-    actor_critic.load_state_dict(new_state_dict)
+    try:
+        for k, v in checkpoint_dict['model'].items():
+            name = k
+            if name.startswith("module."):
+                name = name.replace("module.", "", 1)
+            new_state_dict[name] = v
+        actor_critic.load_state_dict(new_state_dict)
+    except TypeError:
+        print(checkpoint_dict['model'])
+        raise
     return actor_critic
 
 def enjoy(cfg, max_num_frames=1e9):
