@@ -25,6 +25,7 @@ UNITY_ENVS = [
               ["seed", "difficulty", "initialBoost", "canDoubleJump", "canDrift", "canBoost", "useSuspension", "useBulletImpulse",
                "usePsyonixImpulse", "useCustomBounce", "useWallStabilization", "useGroundStabilization"]),
     UnitySpec('unity_saving_training_mixed', 'saving_training_mixed', []),
+    UnitySpec('unity_goalkeeper', 'goalkeeper', []),
     UnitySpec('unity_rocket_league_saving_training_single_discrete', 'rocket_league_saving_training_single_discrete', []),
     UnitySpec('unity_striker', 'striker', []),
     # You can add more single agent unity environments here if needed
