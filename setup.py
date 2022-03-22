@@ -40,13 +40,15 @@ setup(
         'psutil>=5.7.0',
         'threadpoolctl>=2.0.0',
         'colorlog',
-        'faster-fifo>=1.0.9',
         'filelock',
         'opencv-python',
     ],
+    extras_require={
+        'training': ['faster-fifo>=1.0.9'],
+    },
 
-    package_dir={'': './'},
-    packages=setuptools.find_packages(where='./', include='multi_sample_factory*'),
+    package_dir={'': '.'},
+    packages=setuptools.find_packages(where='.', include='multi_sample_factory*'),
     include_package_data=True,
 
     python_requires='>=3.6',

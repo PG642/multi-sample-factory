@@ -17,25 +17,8 @@ from multi_sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgent
 from multi_sample_factory.envs.create_env import create_env
 from multi_sample_factory.utils.utils import log, AttrDict
 
-
-def enjoy(cfg, max_num_frames=1e9):
-    cfg = load_from_checkpoint(cfg)
-
-    render_action_repeat = cfg.render_action_repeat if cfg.render_action_repeat is not None else cfg.env_frameskip
-    if render_action_repeat is None:
-        log.warning('Not using action repeat!')
-        render_action_repeat = 1
-    log.debug('Using action repeat %d during evaluation', render_action_repeat)
-
-    cfg.env_frameskip = 1  # for evaluation
-    cfg.num_envs = 1
-
-    def make_env_func(env_config):
-        return create_env(cfg.env, cfg=cfg, env_config=env_config)
-
-    env = make_env_func(AttrDict({'worker_index': 0, 'vector_index': 0, 'env_id': 0}))
-    # env.seed(0)
-
+def make_env(cfg):
+    env = create_env(cfg.env, cfg=cfg, env_config=AttrDict({'worker_index': 0, 'vector_index': 0, 'env_id': 0}))
     is_multiagent = is_multiagent_env(env)
     if not is_multiagent:
         env = MultiAgentWrapper(env)
@@ -43,10 +26,17 @@ def enjoy(cfg, max_num_frames=1e9):
     if hasattr(env.unwrapped, 'reset_on_init'):
         # reset call ruins the demo recording for VizDoom
         env.unwrapped.reset_on_init = False
-    action_space = transform_action_space(env.action_space)
-    actor_critic = create_actor_critic(cfg, env.observation_space, action_space)
 
-    device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
+    return env
+
+def create_model(cfg, device, action_space, observation_space):
+    cfg.env_frameskip = 1  # for evaluation
+    cfg.num_envs = 1
+    # env.seed(0)
+
+    actor_critic = create_actor_critic(cfg, observation_space, action_space)
+
+
     actor_critic.model_to_device(device)
 
     policy_id = cfg.policy_index
@@ -60,6 +50,22 @@ def enjoy(cfg, max_num_frames=1e9):
             name = name.replace("module.", "", 1)
         new_state_dict[name] = v
     actor_critic.load_state_dict(new_state_dict)
+    return actor_critic
+
+def enjoy(cfg, max_num_frames=1e9):
+    cfg = load_from_checkpoint(cfg)
+
+    render_action_repeat = cfg.render_action_repeat if cfg.render_action_repeat is not None else cfg.env_frameskip
+    if render_action_repeat is None:
+        log.warning('Not using action repeat!')
+        render_action_repeat = 1
+    log.debug('Using action repeat %d during evaluation', render_action_repeat)
+
+    cfg.env_frameskip = 1  # for evaluation
+    cfg.num_envs = 1
+    device = torch.device('cpu' if cfg.device == 'cpu' else 'cuda')
+    env = make_env(cfg)
+    actor_critic = create_model(cfg, device, transform_action_space(env.action_space), env.observation_space)
 
     episode_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
     true_rewards = [deque([], maxlen=100) for _ in range(env.num_agents)]
